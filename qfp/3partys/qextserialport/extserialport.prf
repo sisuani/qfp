@@ -1,0 +1,7 @@
+    SAVE_TEMPLATE = $$TEMPLATE
+    TEMPLATE = fakelib
+    LIBS += -l$$qtLibraryTarget(qextserialport)
+    TEMPLATE = $$SAVE_TEMPLATE
+    INCLUDEPATH += /usr/include/qt4/QtExtSerialPort
+
+    DEFINES += QEXTSERIALPORT_USING_SHARED

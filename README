@@ -1,0 +1,14 @@
+* Build:
+Install dev tools (cmake, gcc / mingw on windows)
+
+- Linux:
+mkdir build
+cd build
+cmake ..
+make
+
+- Windows:
+mkdir build
+cd build
+cmake -G "MinGW Makefiles" ..
+mingw32-make -f Makefile
