@@ -514,9 +514,9 @@ void DriverFiscalEpson::perceptions(const QString &desc, qreal tax_amount)
     QByteArray d;
     d.append(desc);
     d.append(PackageFiscal::FS);
-    d.append(0x4F);
+    d.append('O');
     d.append(PackageFiscal::FS);
-    d.append(QString::number(tax_amount, 'f', 2));
+    d.append(QString::number(tax_amount, 'f', 0));
     d.append(PackageFiscal::FS);
     d.append("0");
     p->setData(d);
