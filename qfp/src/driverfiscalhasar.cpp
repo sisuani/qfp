@@ -466,7 +466,7 @@ void DriverFiscalHasar::printLineItem(const QString &description, const qreal qu
     p->setCmd(CMD_PRINTLINEITEM);
 
     QByteArray d;
-    d.append(description.left(50));
+    d.append(description.left(20));
     d.append(PackageFiscal::FS);
     d.append(QString::number(quantity, 'f', 2));
     d.append(PackageFiscal::FS);
@@ -774,4 +774,124 @@ void DriverFiscalHasar::receiptText(const QString &text)
 
 void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 {
+    QByteArray d;
+
+    PackageHasar *pp = new PackageHasar;
+    pp->setCmd(0x5d);
+
+    d.append("11");
+    d.append(PackageFiscal::FS);
+    d.append("DEFENSA CONSUMIDOR " + phone);
+    pp->setData(d);
+    queue.append(pp);
+    d.clear();
+
+    /*
+    PackageHasar *p = new PackageHasar;
+    p->setCmd(0x5d);
+
+
+    d.append("12");
+    d.append(PackageFiscal::FS);
+    d.append("*************************************");
+    p->setData(d);
+    queue.append(p);
+    d.clear();
+    */
+
+    PackageHasar *p1 = new PackageHasar;
+    p1->setCmd(0x5d);
+
+    d.append("12");
+    d.append(PackageFiscal::FS);
+    d.append("Entra con este ticket a:");
+    p1->setData(d);
+    queue.append(p1);
+    d.clear();
+
+    PackageHasar *p2 = new PackageHasar;
+    p2->setCmd(0x5d);
+
+    d.append("13");
+    d.append(PackageFiscal::FS);
+    d.append("www.cuentaleasubway.com y llevate una");
+    p2->setData(d);
+    queue.append(p2);
+    d.clear();
+
+    PackageHasar *p3 = new PackageHasar;
+    p3->setCmd(0x5d);
+
+    d.append("14");
+    d.append(PackageFiscal::FS);
+    d.append("COOKIE GRATIS, Rest. ID: " + shop);
+    p3->setData(d);
+    queue.append(p3);
+    d.clear();
+
+    /*
+    PackageHasar *p4 = new PackageHasar;
+    p4->setCmd(0x5d);
+
+    d.append("15");
+    d.append(PackageFiscal::FS);
+    d.append("Restaurante ID: " + shop);
+    p4->setData(d);
+    queue.append(p4);
+    d.clear();
+    */
+
+    /*
+    PackageHasar *p5 = new PackageHasar;
+    p5->setCmd(0x5d);
+
+    d.append("18");
+    d.append(PackageFiscal::FS);
+    d.append("*************************************");
+    p5->setData(d);
+    queue.append(p5);
+    d.clear();
+
+    PackageHasar *p6 = new PackageHasar;
+    p6->setCmd(0x5d);
+
+    d.append("19");
+    d.append(PackageFiscal::FS);
+    d.append(" ");
+    p6->setData(d);
+    queue.append(p6);
+    d.clear();
+
+    PackageHasar *p7 = new PackageHasar;
+    p7->setCmd(0x5d);
+
+    d.append("20");
+    d.append(PackageFiscal::FS);
+    d.append(" ");
+    p7->setData(d);
+    queue.append(p7);
+    d.clear();
+
+    PackageHasar *p8 = new PackageHasar;
+    p8->setCmd(0x5d);
+
+    d.append("21");
+    d.append(PackageFiscal::FS);
+    d.append(" ");
+    p8->setData(d);
+    queue.append(p8);
+    d.clear();
+
+    PackageHasar *p9 = new PackageHasar;
+    p9->setCmd(0x5d);
+
+    d.append("22");
+    d.append(PackageFiscal::FS);
+    d.append(" ");
+    p9->setData(d);
+    queue.append(p9);
+    d.clear();
+    */
+
+    start();
 }
