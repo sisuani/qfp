@@ -79,14 +79,16 @@ void DriverFiscalHasar::run()
         QByteArray ret = readData(pkg->cmd());
         if(ret == "-1") {
             queue.clear();
+            m_serialPort->readAll();
 
             if(errorHandler_count > 20)
                 return;
 
             errorHandler_count++;
 
+            /*
             for(int i = 0 ; i < 100; i++)
-                sendAck();
+                sendAck();*/
 
             errorHandler();
 
@@ -146,26 +148,16 @@ void DriverFiscalHasar::errorHandler()
 
 
     delete p;
-
+    sendAck();
 
     p = new PackageHasar;
     p->setCmd(CMD_CLOSEFISCALRECEIPT);
     p->setFtype(0);
     p->setId(-1);
-
-    m_serialPort->write(p->fiscalPackage());
-
-
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_CLOSEFISCALRECEIPT);
-    if(f_type == 'S')
-        p->setFtype(0);
-    else if(f_type == 'r')
-        p->setFtype(3);
-    p->setId(id);
     m_serialPort->write(p->fiscalPackage());
 
     delete p;
+    sendAck();
 
     p = new PackageHasar;
     p->setCmd(CMD_CLOSENONFISCALRECEIPT);
@@ -175,6 +167,7 @@ void DriverFiscalHasar::errorHandler()
     m_serialPort->write(p->fiscalPackage());
 
     delete p;
+    sendAck();
 
 
     SleeperThread::msleep(200);
