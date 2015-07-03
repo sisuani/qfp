@@ -99,6 +99,7 @@ public:
     virtual void ack();
     virtual void setDateTime(const QDateTime &dateTime);
     virtual void setFixedData(const QString &shop, const QString &phone);
+    virtual void finish();
 
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC

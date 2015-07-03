@@ -56,6 +56,7 @@ DriverFiscalEpson::DriverFiscalEpson(QObject *parent, SerialPort *m_serialPort)
     m_nak_count = 0;
     m_error = false;
     m_isinvoice = false;
+    m_continue = true;
     clear();
 }
 
@@ -64,10 +65,22 @@ void DriverFiscalEpson::setModel(const FiscalPrinter::Model model)
     m_model = model;
 }
 
+void DriverFiscalEpson::finish()
+{
+    m_continue = false;
+    queue.clear();
+    quit();
+
+    while(isRunning()) {
+        msleep(100);
+        quit();
+    }
+}
+
 void DriverFiscalEpson::run()
 {
 
-    while(!queue.empty()) {
+    while(!queue.empty() && m_continue) {
         PackageEpson *pkg = queue.first();
         m_serialPort->write(pkg->fiscalPackage());
 
@@ -135,13 +148,16 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
     QByteArray bytes;
 
     do {
-        if(m_serialPort->bytesAvailable() <= 0) {
+        if(m_serialPort->bytesAvailable() <= 0 && m_continue) {
 #if LOGGER
             log << QString("NB tw");
 #endif
             count_tw++;
             SleeperThread::msleep(100);
         }
+
+        if(!m_continue)
+            return "";
 
         QByteArray bufferBytes = m_serialPort->read(1);
         if(bufferBytes.at(0) == PackageFiscal::DC1 || bufferBytes.at(0) == PackageFiscal::DC2
@@ -173,7 +189,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
 
             QByteArray checkSumArray;
             int checksumCount = 0;
-            while(checksumCount != 4) {
+            while(checksumCount != 4 && m_continue) {
                 checkSumArray = m_serialPort->read(1);
                 count_tw++;
                 if(checkSumArray.isEmpty()) {
@@ -194,7 +210,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
         }
         count_tw++;
 
-    } while(ok != true && count_tw <= MAX_TW);
+    } while(ok != true && count_tw <= MAX_TW && m_continue);
 
 #if LOGGER
     log << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);

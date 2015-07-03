@@ -66,6 +66,7 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
 
 FiscalPrinter::~FiscalPrinter()
 {
+    m_driverFiscal->finish();
     if(m_serialPort) {
         if(m_serialPort->isOpen())
             m_serialPort->close();

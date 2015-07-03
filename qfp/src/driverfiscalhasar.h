@@ -71,6 +71,7 @@ public:
 
     void setModel(const FiscalPrinter::Model model);
 
+
     virtual QByteArray readData(const int pkg_cmd);
     virtual int getReceiptNumber(const QByteArray &data);
     virtual bool getStatus(const QByteArray &data);
@@ -106,6 +107,7 @@ public:
     virtual void ack();
     virtual void setDateTime(const QDateTime &dateTime);
     virtual void setFixedData(const QString &shop, const QString &phone);
+    virtual void finish();
 
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC
@@ -116,9 +118,11 @@ protected:
 
 private:
     void sendAck();
+    void errorHandler();
     bool m_error;
     QVector<PackageHasar *> queue;
     FiscalPrinter::Model m_model;
+    int errorHandler_count;
     int m_nak_count;
 };
 

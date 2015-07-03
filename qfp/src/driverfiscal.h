@@ -100,12 +100,14 @@ public:
     virtual void ack() = 0;
     virtual void setDateTime(const QDateTime &dateTime) = 0;
     virtual void setFixedData(const QString &shop, const QString &phone) = 0;
+    virtual void finish() = 0;
 
 
 protected:
     virtual void fiscalReceiptNumber(int id, int number, int type) = 0; // type == 0 Factura, == 1 NC
     SerialPort *m_serialPort;
     int m_TIME_WAIT;
+    bool m_continue;
 };
 
 class SleeperThread : public QThread
