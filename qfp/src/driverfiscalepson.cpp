@@ -405,7 +405,7 @@ void DriverFiscalEpson::setCustomerData(const QString &name, const QString &cuit
 
     if(doc_type.compare("C") == 0)
         m_doc_type = "CUIT";
-    else if(m_doc_type.compare("3") == 0)
+    else if(doc_type.compare("3") == 0)
         m_doc_type = "PASAPO";
     else
         m_doc_type = "DNI";

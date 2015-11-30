@@ -55,6 +55,7 @@ DriverFiscalHasar::DriverFiscalHasar(QObject *parent, SerialPort *m_serialPort, 
 
 void DriverFiscalHasar::setModel(const FiscalPrinter::Model model)
 {
+    qDebug() << "MODEL: " << model << "ORIG: " << FiscalPrinter::Hasar615F;
     m_model = model;
 }
 
@@ -81,7 +82,7 @@ void DriverFiscalHasar::run()
             queue.clear();
             m_serialPort->readAll();
 
-            if(errorHandler_count > 20)
+            if(errorHandler_count > 4)
                 return;
 
             errorHandler_count++;
@@ -517,7 +518,10 @@ void DriverFiscalHasar::printLineItem(const QString &description, const qreal qu
     p->setCmd(CMD_PRINTLINEITEM);
 
     QByteArray d;
-    d.append(description.left(18));
+    if(m_model == FiscalPrinter::Hasar615F || m_model == FiscalPrinter::Hasar715F)
+        d.append(description.left(18));
+    else
+        d.append(description.left(62));
     d.append(PackageFiscal::FS);
     d.append(QString::number(quantity, 'f', 2));
     d.append(PackageFiscal::FS);
