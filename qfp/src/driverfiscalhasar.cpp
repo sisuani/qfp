@@ -45,7 +45,6 @@ DriverFiscalHasar::DriverFiscalHasar(QObject *parent, SerialPort *m_serialPort, 
 {
 #if LOGGER
     //Logger::instance()->init(QCoreApplication::applicationDirPath() + "/fiscal.txt");
-    //qDebug() << QString("INICIO Time: %1").arg(m_TIME_WAIT);
 #endif
     m_nak_count = 0;
     m_error = false;

@@ -32,25 +32,63 @@
 *
 */
 
-#ifndef PACKAGEFISCAL_H
-#define PACKAGEFISCAL_H
+#include "packageepsonext.h"
+#include "packagefiscal.h"
+#include "driverfiscal.h"
 
-class PackageFiscal
+PackageEpsonExt::PackageEpsonExt(QObject *parent)
+    : QObject(parent)
 {
-public:
-    enum {
-        FNU = 0x00,
-        STX = 0x02,
-        ETX = 0x03,
-        ACK = 0x06,
-        DC1 = 0x11,
-        DC2 = 0x12,
-        DC3 = 0x13,
-        DC4 = 0x14,
-        NAK = 0x15,
-        FS  = 0x1c,
-        CUE = 0x80
-    };
-};
+    m_id = 0;
+    m_last_secuence = m_secuence;
+    nextSecuence();
+}
 
-#endif // PACKAGEFISCAL_H
+void PackageEpsonExt::setId(int id)
+{
+    m_id = id;
+}
+
+int PackageEpsonExt::id()
+{
+    return m_id;
+}
+
+void PackageEpsonExt::setCmd(const int cmd)
+{
+    m_cmd = cmd;
+}
+
+int PackageEpsonExt::cmd()
+{
+    return m_cmd;
+}
+
+void PackageEpsonExt::setData(const QByteArray &data)
+{
+    m_data = data;
+}
+
+QByteArray &PackageEpsonExt::data()
+{
+    return m_data;
+}
+
+QByteArray &PackageEpsonExt::fiscalPackage() {
+
+    m_bytes.clear();
+    m_bytes.append(PackageFiscal::STX);
+    m_bytes.append(m_last_secuence);
+    m_bytes.append(m_data);
+    m_bytes.append(PackageFiscal::ETX);
+    m_bytes.append(QString("%1").arg(checksum(), 4, 16, QChar('0')).toUpper());
+    return m_bytes;
+}
+
+int PackageEpsonExt::checksum() {
+    int v_checksum = 0;
+    for(int i = 0; i < m_bytes.size(); i++) {
+        v_checksum += QString::number ((uchar) m_bytes[i], 10).toInt();
+    }
+    return v_checksum;
+}

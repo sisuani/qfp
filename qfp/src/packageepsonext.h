@@ -32,25 +32,36 @@
 *
 */
 
-#ifndef PACKAGEFISCAL_H
-#define PACKAGEFISCAL_H
+#ifndef PACKAGEEPSONEXT_H
+#define PACKAGEEPSONEXT_H
 
-class PackageFiscal
+#include <QObject>
+
+class PackageEpsonExt : public QObject
 {
+    Q_OBJECT
+
 public:
-    enum {
-        FNU = 0x00,
-        STX = 0x02,
-        ETX = 0x03,
-        ACK = 0x06,
-        DC1 = 0x11,
-        DC2 = 0x12,
-        DC3 = 0x13,
-        DC4 = 0x14,
-        NAK = 0x15,
-        FS  = 0x1c,
-        CUE = 0x80
-    };
+    PackageEpsonExt(QObject *parent = 0);
+
+    void setId(int id);
+    int id();
+    void setCmd(const int cmd);
+    int cmd();
+    void setData(const QByteArray &data);
+    QByteArray &data();
+    QByteArray &fiscalPackage();
+    int checksum();
+
+    static int m_secuence;
+
+private:
+    void nextSecuence() { if(++m_secuence >= 0xff) m_secuence = 0x81; }
+    int m_id;
+    int m_cmd;
+    int m_last_secuence;
+    QByteArray m_data;
+    QByteArray m_bytes;
 };
 
-#endif // PACKAGEFISCAL_H
+#endif // PACKAGEEPSONEXT_H

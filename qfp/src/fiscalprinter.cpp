@@ -34,6 +34,7 @@
 
 #include "fiscalprinter.h"
 #include "driverfiscalepson.h"
+#include "driverfiscalepsonext.h"
 #include "driverfiscalhasar.h"
 
 #include <QDebug>
@@ -44,16 +45,23 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
 {
     m_serialPort = new SerialPort(port_type, port);
     qDebug() << "serialport - " << port_type << port << m_serialPort->isOpen();
-    if(model == EpsonTmU220 || model == Hasar615F || model == Hasar715F)
+    if(model == EpsonTMU220 || model == EpsonTM900 || model == Hasar615F || model == Hasar715F)
         m_supportTicket = true;
     else
         m_supportTicket = false;
 
-    if(brand == FiscalPrinter::Epson) {
-        m_driverFiscal = new DriverFiscalEpson(this, m_serialPort);
-        dynamic_cast<DriverFiscalEpson *>(m_driverFiscal)->setModel(model);
-        connect(dynamic_cast<DriverFiscalEpson *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
-                this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+    if (brand == FiscalPrinter::Epson) {
+        if (model == EpsonTM900) {
+            m_driverFiscal = new DriverFiscalEpsonExt(this, m_serialPort);
+            dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal)->setModel(model);
+            connect(dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
+                    this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+        } else {
+            m_driverFiscal = new DriverFiscalEpson(this, m_serialPort);
+            dynamic_cast<DriverFiscalEpson *>(m_driverFiscal)->setModel(model);
+            connect(dynamic_cast<DriverFiscalEpson *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
+                    this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+        }
     } else {
         m_driverFiscal = new DriverFiscalHasar(this, m_serialPort, m_TIME_WAIT);
         dynamic_cast<DriverFiscalHasar *>(m_driverFiscal)->setModel(model);

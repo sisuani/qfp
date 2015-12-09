@@ -50,7 +50,8 @@ public:
     Q_DECLARE_FLAGS(Brands, Brand)
 
     enum Model {
-        EpsonTmU220,
+        EpsonTMU220,
+        EpsonTM900,
         Hasar320F,
         Hasar330F,
         Hasar615F,
@@ -59,7 +60,7 @@ public:
     Q_DECLARE_FLAGS(Models, Model)
 
     FiscalPrinter(QObject *parent = 0, FiscalPrinter::Brand brand = Epson,
-            FiscalPrinter::Model model = EpsonTmU220, const QString &port_type = "COM",
+            FiscalPrinter::Model model = EpsonTMU220, const QString &port_type = "COM",
             unsigned int port = 1, int m_TIME_WAIT = 300);
 
     ~FiscalPrinter();

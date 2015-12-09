@@ -14,20 +14,21 @@ class CommandLineThread : public QThread
     Q_OBJECT
 
 public:
-    CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="") : QThread(parent) {
+    CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="", const QString &sport="") : QThread(parent) {
         FiscalPrinter::Brand brand;
         FiscalPrinter::Model model;
-        unsigned int port = 2;
+        unsigned int port = sport.toInt();
         if(sbrand.compare("epson") == 0) {
             brand = FiscalPrinter::Epson;
 
             if(smodel.compare("220") == 0)
-                model = FiscalPrinter::EpsonTmU220;
+                model = FiscalPrinter::EpsonTMU220;
+            else if(smodel.compare("900") == 0)
+                model = FiscalPrinter::EpsonTM900;
             else
-                model = FiscalPrinter::EpsonTmU220; // Error model
+                model = FiscalPrinter::EpsonTMU220; // Error model
         } else {
             brand = FiscalPrinter::Hasar;
-            port = 1;
 
             if(smodel.compare("320") == 0)
                 model = FiscalPrinter::Hasar320F;
@@ -47,7 +48,7 @@ public:
         fp = new FiscalPrinter(0, brand, model, port_type, port, 400);
         ep = new ErrorParser(0, fp);
         connect(fp, SIGNAL(fiscalStatus(bool)), ep, SLOT(fiscalStatus(bool)));
-        fp->statusRequest();
+        //fp->statusRequest();
     }
 
     void run(void) {
@@ -89,7 +90,7 @@ public:
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('A');
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
-                    fp->perceptions(2.5, 0.025);
+                    fp->perceptions("2.5", 0.025);
                     fp->totalTender("Efectivo", 1, 'T');
                     fp->closeFiscalReceipt('T', 'A', 1 + 0.025);
                     fp->setHeaderTrailer("", "");
@@ -119,7 +120,7 @@ public:
                     fp->openDNFH('S', 'T', "12");
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
                     fp->totalTender("Contado", 1, 'T');
-                    fp->closeDNFH(1);
+                    fp->closeDNFH(1, 'r', 1);
                     break;
                 case 'w':
                     fp->openDrawer();

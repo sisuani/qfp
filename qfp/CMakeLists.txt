@@ -5,8 +5,10 @@ include(${QT_USE_FILE})
 set(qfp_SRCS
     src/serialport.cpp
     src/driverfiscalepson.cpp
+    src/driverfiscalepsonext.cpp
     src/driverfiscalhasar.cpp
     src/packageepson.cpp
+    src/packageepsonext.cpp
     src/packagehasar.cpp
     src/fiscalprinter.cpp
 )
