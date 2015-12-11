@@ -66,10 +66,10 @@ public:
                     fp->dailyClose('Z');
                     break;
                 case 'd':
-                    fp->dailyCloseByDate(QDate(2013, 10, 10), QDate(2013, 10, 20));
+                    fp->dailyCloseByDate(QDate(2015, 10, 10), QDate(2015, 12, 20));
                     break;
                 case 'n':
-                    fp->dailyCloseByNumber(1630, 1631);
+                    fp->dailyCloseByNumber(1, 20);
                     break;
                 case 'f':
                     fp->setHeaderTrailer("", "test prueba si");
@@ -87,6 +87,7 @@ public:
                     break;
                 case 'A':
                     fp->setHeaderTrailer("", "test prueba si");
+                    fp->setEmbarkNumber(1, "001-00001-00000001");
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('A');
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
@@ -96,10 +97,11 @@ public:
                     fp->setHeaderTrailer("", "");
                     break;
                 case 'B':
-                    //fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
+                    fp->setEmbarkNumber(1, "001-00001-00000001");
+                    fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('B');
                     fp->printLineItem("Producto", 1.00, 1.00, "21.00", 'M');
-                    //fp->totalTender("Cheque", 1, 'T');
+                    fp->totalTender("Cheque", 1, 'T');
                     fp->closeFiscalReceipt('T', 'B', 1);
                     break;
                 case 'C':
@@ -129,7 +131,8 @@ public:
                     fp->cancel();
                     break;
                 case 't':
-                    fp->totalTender("Cancelar", 0.00, 'C');
+                    fp->setDateTime(QDateTime::currentDateTime());
+                    //fp->totalTender("Cancelar", 0.00, 'C');
                     break;
                 case 'm':
                     for(int i = 0; i < 40; i++) {
