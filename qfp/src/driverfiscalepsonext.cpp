@@ -57,6 +57,7 @@ DriverFiscalEpsonExt::DriverFiscalEpsonExt(QObject *parent, SerialPort *m_serial
     m_nak_count = 0;
     m_error = false;
     m_isinvoice = false;
+    m_iscreditnote = false;
     m_continue = true;
     clear();
 }
@@ -131,9 +132,9 @@ void DriverFiscalEpsonExt::sendAck()
 int DriverFiscalEpsonExt::getReceiptNumber(const QByteArray &data)
 {
     QByteArray tmp = data;
-    tmp.remove(0, 14);
+    tmp.remove(0, 13);
     for(int i = 0; i < tmp.size(); i++) {
-        if(tmp.at(i) == PackageFiscal::ETX) {
+        if(tmp.at(i) == PackageFiscal::FS) {
             tmp.remove(i, tmp.size());
             break;
         }
@@ -179,29 +180,8 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
             return bufferBytes;
         } else if(bufferBytes.at(0) == PackageFiscal::STX) {
             bufferBytes = m_serialPort->read(1);
+            verifyIntermediatePackage(bufferBytes);
 
-            while (QString(bufferBytes.toHex()) == "80") {
-                SleeperThread::msleep(200);
-                count_tw++;
-
-                bufferBytes = m_serialPort->read(1);
-                QByteArray checkSumArray;
-                int checksumCount = 0;
-                while(checksumCount != 5 && m_continue) {
-                    checkSumArray = m_serialPort->read(1);
-                    count_tw++;
-                    if(checkSumArray.isEmpty()) {
-                        SleeperThread::msleep(100);
-                    } else {
-                        checksumCount++;
-                    }
-
-                    if(count_tw >= MAX_TW)
-                        break;
-                }
-                //log << "END INTER";
-                bufferBytes = m_serialPort->read(1);
-            }
 
             bytes += PackageFiscal::STX;
 
@@ -212,6 +192,10 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
                     SleeperThread::msleep(100);
                 }
 
+                if(bufferBytes.at(0) == PackageFiscal::STX) {
+                    bufferBytes = m_serialPort->read(1);
+                    verifyIntermediatePackage(bufferBytes);
+                }
                 bytes += bufferBytes;
                 bufferBytes = m_serialPort->read(1);
 
@@ -237,21 +221,19 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
                     break;
             }
 
-
             ok = true;
             break;
         } else {
+            verifyIntermediatePackage(bufferBytes);
             bytes += bufferBytes;
         }
         count_tw++;
-
 
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
     //log << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
 
     ok = verifyResponse(bytes, pkg_cmd);
-
 
     if(!ok) {
         log << QString("ERROR READ: %1").arg(bytes.toHex().data());
@@ -265,6 +247,43 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
     }
 
     return bytes;
+}
+
+void DriverFiscalEpsonExt::verifyIntermediatePackage(QByteArray &bufferBytes)
+{
+    if (QString(bufferBytes.toHex()) != "80")
+        return;
+
+    int count_tw = 0;
+    while (QString(bufferBytes.toHex()) == "80") {
+        count_tw++;
+
+        bufferBytes = m_serialPort->read(1);
+        while(bufferBytes.at(0) != PackageFiscal::ETX) {
+            bufferBytes = m_serialPort->read(1);
+            count_tw++;
+            if(count_tw >= MAX_TW)
+                break;
+        }
+
+        bufferBytes.clear();
+
+        QByteArray checkSumArray;
+        int checksumCount = 0;
+        while(checksumCount != 4 && m_continue) {
+            checkSumArray = m_serialPort->read(1);
+            count_tw++;
+            if(checkSumArray.isEmpty()) {
+                SleeperThread::msleep(100);
+            } else {
+                checksumCount++;
+            }
+
+            if(count_tw >= MAX_TW)
+                break;
+        }
+    }
+
 }
 
 bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg_cmd)
@@ -288,6 +307,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
 
         return false;
     }
+    */
 
     if(bytes.at(4) != PackageFiscal::FS) {
         log << QString("Error: diff FS");
@@ -298,7 +318,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
         }
         return false;
     }
-    */
+
 
     if(bytes.at(bytes.size() - 5) != PackageFiscal::ETX) {
         log << QString("Error: ETX");
@@ -310,7 +330,6 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
         return false;
     }
 
-    /*
     if(!checkSum(bytes)) {
         log << QString("Error: checksum");
 
@@ -320,12 +339,17 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
         }
         return false;
     }
-    */
 
     return true;
 }
 
+
 bool DriverFiscalEpsonExt::checkSum(const QString &data)
+{
+    return true;
+}
+
+bool DriverFiscalEpsonExt::checkSum(const QByteArray &data)
 {
     bool ok;
     int checkSum = data.right(4).toInt(&ok, 16);
@@ -337,7 +361,6 @@ bool DriverFiscalEpsonExt::checkSum(const QString &data)
     for(int i = 0; i < data.size()-4; i++) {
         ck_cmd += QChar(data.at(i)).unicode();
     }
-
 
     return (checkSum == ck_cmd);
 }
@@ -487,7 +510,7 @@ void DriverFiscalEpsonExt::openFiscalReceipt(const char type)
         d.append(PackageFiscal::FS);
         d.append(m_tax_type);
         d.append(PackageFiscal::FS);
-        d.append(m_refer);
+        d.append(m_refer.isEmpty() ? "901-99999-99999999" : m_refer);
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
@@ -497,9 +520,13 @@ void DriverFiscalEpsonExt::openFiscalReceipt(const char type)
         // CMD
         d.append(0x0A);
         d.append(0x01);
+
         // DATA
         d.append(PackageFiscal::FS);
-        d.append(QByteArray::fromHex("0"));
+        if (type == 'M')
+            d.append(0x40);
+        else
+            d.append(QByteArray::fromHex("0"));
         d.append(QByteArray::fromHex("0"));
     }
 
@@ -523,6 +550,13 @@ void DriverFiscalEpsonExt::printLineItem(const QString &description, const qreal
     QByteArray d;
     if (m_isinvoice) {
         d.append(0x0B);
+        d.append(0x1B);
+        d.append(0x02);
+        d.append(PackageFiscal::FS);
+        d.append(QByteArray::fromHex("0"));
+        d.append(0x10);
+    } else if (m_iscreditnote) {
+        d.append(0x0D);
         d.append(0x1B);
         d.append(0x02);
         d.append(PackageFiscal::FS);
@@ -554,25 +588,14 @@ void DriverFiscalEpsonExt::printLineItem(const QString &description, const qreal
     d.append(PackageFiscal::FS);
     d.append(QString::number(tax.toDouble() * 100, 'f', 0));
     d.append(PackageFiscal::FS);
-    //d.append(qualifier);
     d.append(PackageFiscal::FS);
-    if(m_isinvoice) {
-        d.append(PackageFiscal::FS);
-        d.append(PackageFiscal::FS);
-        d.append(PackageFiscal::FS);
-        d.append(description.left(40));
-        d.append(PackageFiscal::FS);
-        d.append("01");
-        d.append(PackageFiscal::FS);
-    } else {
-        d.append(PackageFiscal::FS);
-        d.append(PackageFiscal::FS);
-        d.append(PackageFiscal::FS);
-        d.append(description.left(40));
-        d.append(PackageFiscal::FS);
-        d.append("01");
-        d.append(PackageFiscal::FS);
-    }
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(description.left(40));
+    d.append(PackageFiscal::FS);
+    d.append("01");
+    d.append(PackageFiscal::FS);
     p->setData(d);
 
     queue.append(p);
@@ -626,6 +649,8 @@ void DriverFiscalEpsonExt::subtotal(const char print)
         d.append(QByteArray::fromHex("0"));
         d.append(QByteArray::fromHex("0"));
     }
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
 
     p->setData(d);
 
@@ -639,14 +664,37 @@ void DriverFiscalEpsonExt::totalTender(const QString &description, const qreal a
     p->setCmd(m_isinvoice ? CMD_TOTALTENDER_INVOICE : CMD_TOTALTENDER_TICKET);
 
     QByteArray d;
+    if (m_isinvoice) {
+        d.append(0x0B);
+        d.append(0x05);
+        // DATA
+        d.append(PackageFiscal::FS);
+        d.append(QByteArray::fromHex("0"));
+        d.append(QByteArray::fromHex("0"));
+    } else {
+        d.append(0x0A);
+        d.append(0x05);
+        // DATA
+        d.append(PackageFiscal::FS);
+        d.append(QByteArray::fromHex("0"));
+        d.append(QByteArray::fromHex("0"));
+    }
+
+    d.append(PackageFiscal::FS);
     d.append(description);
     d.append(PackageFiscal::FS);
-    d.append(QString::number(amount * 100, 'f', 0).rightJustified(9, '0'));
+    d.append(description);
     d.append(PackageFiscal::FS);
-    d.append(type);
+    d.append(PackageFiscal::FS);
+    d.append(description);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(amount * 100, 'f', 0));
+
     p->setData(d);
 
-    //queue.append(p);
+    queue.append(p);
     start();
 }
 
@@ -656,46 +704,33 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     p->setCmd(m_isinvoice ? CMD_PRINTLINEITEM_INVOICE : CMD_PRINTLINEITEM_TICKET);
 
     QByteArray d;
-    d.append(description.left(20));
-    d.append(PackageFiscal::FS);
-    d.append("1000");
-    d.append(PackageFiscal::FS);
-    if(m_tax_type == 'I') {
-        d.append(QString::number((amount/1.21) * 100, 'f', 0));
+    if(m_isinvoice) {
+        d.append(0x0B);
+        d.append(0x04);
+        d.append(PackageFiscal::FS);
+        d.append(QByteArray::fromHex("0"));
+        d.append(QByteArray::fromHex("0"));
+        d.append(QByteArray::fromHex("0"));
     } else {
-        d.append(QString::number(amount * 100, 'f', 0));
+        d.append(0x0A);
+        d.append(0x04);
+        d.append(PackageFiscal::FS);
+        d.append(QByteArray::fromHex("0"));
+        d.append(QByteArray::fromHex("0"));
     }
+
+    d.append(PackageFiscal::FS);
+    d.append(description);
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(amount * 100, 'f', 0));
     d.append(PackageFiscal::FS);
     d.append("2100");
     d.append(PackageFiscal::FS);
-    d.append(type == 'M' ? 'M' : 'R');
     d.append(PackageFiscal::FS);
-    if(m_isinvoice) {
-        d.append("0000");
-        d.append(PackageFiscal::FS);
-        d.append("00000000");
-        d.append(PackageFiscal::FS);
-        d.append("");
-        d.append(PackageFiscal::FS);
-        d.append("");
-        d.append(PackageFiscal::FS);
-        d.append("");
-        d.append(PackageFiscal::FS);
-        d.append("0000");
-        d.append(PackageFiscal::FS);
-        d.append("00000000000000000");
-    } else {
-        d.append("0");
-        d.append(PackageFiscal::FS);
-        d.append("00000000");
-        d.append(PackageFiscal::FS);
-        d.append("00000000000000000");
-    }
-    p->setData(d);
 
+    p->setData(d);
     queue.append(p);
     start();
-
 }
 
 void DriverFiscalEpsonExt::closeFiscalReceipt(const char intype, const char type, const int id)
@@ -720,11 +755,11 @@ void DriverFiscalEpsonExt::closeFiscalReceipt(const char intype, const char type
         d.append(PackageFiscal::FS);
     } else {
         d.append(0x0A);
-        d.append(0x1B);
         d.append(0x06);
         d.append(PackageFiscal::FS);
         d.append(QByteArray::fromHex("0"));
-        d.append(0x01);
+        d.append(0x1B);
+        d.append(0x03);
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
@@ -733,7 +768,6 @@ void DriverFiscalEpsonExt::closeFiscalReceipt(const char intype, const char type
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
     }
-
 
     clear();
 
@@ -820,6 +854,15 @@ void DriverFiscalEpsonExt::openDrawer()
 {
     PackageEpsonExt *p = new PackageEpsonExt;
     p->setCmd(CMD_OPENDRAWER);
+    QByteArray d;
+    // CMD
+    d.append(0x07);
+    d.append(0x07);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(0x01);
+    p->setData(d);
 
     queue.append(p);
     start();
@@ -838,46 +881,40 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
 {
     PackageEpsonExt *p = new PackageEpsonExt;
 
-    QByteArray d;
-    m_isinvoice = true;
+    m_iscreditnote = true;
     p->setCmd(CMD_OPENFISCALRECEIPT);
-    d.append('M');
+
+    if (type == 'A')
+        m_isinvoice = true;
+
+    QByteArray d;
+    // CMD
+    d.append(0x0D);
+    d.append(0x01);
+    // DATA
     d.append(PackageFiscal::FS);
-    d.append('C');
-    d.append(PackageFiscal::FS);
-    d.append(type == 'R' ? 'A' : 'B');
-    d.append(PackageFiscal::FS);
-    d.append('1');
-    d.append(PackageFiscal::FS);
-    d.append('F');
-    d.append(PackageFiscal::FS);
-    d.append(QString::number(12).toLatin1());
-    d.append(PackageFiscal::FS);
-    d.append('I');
-    d.append(PackageFiscal::FS);
-    d.append(m_tax_type);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
     d.append(PackageFiscal::FS);
     d.append(m_name);
     d.append(PackageFiscal::FS);
-    d.append("");
+    d.append(PackageFiscal::FS);
+    d.append(m_address);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(m_doc_type);
     d.append(PackageFiscal::FS);
     d.append(m_cuit);
     d.append(PackageFiscal::FS);
-    d.append('N');
+    d.append(m_tax_type);
     d.append(PackageFiscal::FS);
-    d.append(m_address);
+    d.append(m_refer.isEmpty() ? "901-99999-99999999" : m_refer);
     d.append(PackageFiscal::FS);
-    d.append(m_address1);
     d.append(PackageFiscal::FS);
-    d.append("");
     d.append(PackageFiscal::FS);
-    d.append(doc_num);
-    d.append(PackageFiscal::FS);
-    d.append("");
-    d.append(PackageFiscal::FS);
-    d.append('C');
+    d.append(doc_num.isEmpty() ? "901-99999-99999999" : doc_num);
+
     p->setData(d);
 
     queue.append(p);
@@ -896,17 +933,26 @@ void DriverFiscalEpsonExt::closeDNFH(const int id, const char f_type, const int 
     p->setCmd(CMD_CLOSEFISCALRECEIPT_INVOICE);
 
     QByteArray d;
-    d.append('M');
+    // CMD
+    d.append(0x0D);
+    d.append(0x06);
+    // DATA
     d.append(PackageFiscal::FS);
-    d.append(m_tax_type == 'I' ? 'A' : 'B');
+    d.append(QByteArray::fromHex("0"));
+    d.append(0x1B);
+    d.append(0x03);
     d.append(PackageFiscal::FS);
-    d.append("0");
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
 
     clear();
 
     p->setData(d);
 
-    qDebug() << (p->data()[0] == 'M');
     queue.append(p);
     start();
 }
@@ -925,10 +971,14 @@ void DriverFiscalEpsonExt::setDateTime(const QDateTime &dateTime)
     p->setCmd(CMD_SETDATETIME);
 
     QByteArray d;
+    // CMD
     d.append(0x05);
-    d.append(0x1B);
     d.append(0x01);
     // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
     d.append(PackageFiscal::FS);
     d.append(dateTime.toString("ddMMyy"));
     d.append(PackageFiscal::FS);
@@ -940,8 +990,34 @@ void DriverFiscalEpsonExt::setDateTime(const QDateTime &dateTime)
     start();
 }
 
+void DriverFiscalEpsonExt::setFooter(int line, const QString &text)
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_SETDATETIME);
+
+    QByteArray d;
+    // CMD
+    d.append(0x05);
+    d.append(0x0A);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(line));
+    d.append(PackageFiscal::FS);
+    d.append(text);
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
 void DriverFiscalEpsonExt::clear()
 {
+    m_iscreditnote = false;
     m_name = "Consumidor Final";
     m_cuit = "0";
     m_tax_type = 'F';
@@ -957,118 +1033,14 @@ void DriverFiscalEpsonExt::receiptText(const QString &text)
 
 void DriverFiscalEpsonExt::setFixedData(const QString &shop, const QString &phone)
 {
-    QByteArray d;
-
-    PackageEpsonExt *pp = new PackageEpsonExt;
-    pp->setCmd(0x5d);
-
-    d.append("00011");
-    d.append(PackageFiscal::FS);
-    d.append("DEFENSA CONSUMIDOR " + phone);
-    pp->setData(d);
-    queue.append(pp);
-    d.clear();
-
-    PackageEpsonExt *p = new PackageEpsonExt;
-    p->setCmd(0x5d);
-
-
-    d.append("00012");
-    d.append(PackageFiscal::FS);
-    d.append("*************************************");
-    p->setData(d);
-    queue.append(p);
-    d.clear();
-
-    PackageEpsonExt *p1 = new PackageEpsonExt;
-    p1->setCmd(0x5d);
-
-    d.append("00013");
-    d.append(PackageFiscal::FS);
-    d.append("Entra con este ticket a:");
-    p1->setData(d);
-    queue.append(p1);
-    d.clear();
-
-    PackageEpsonExt *p2 = new PackageEpsonExt;
-    p2->setCmd(0x5d);
-
-    d.append("00014");
-    d.append(PackageFiscal::FS);
-    d.append("www.cuentaleasubway.com y llevate una");
-    p2->setData(d);
-    queue.append(p2);
-    d.clear();
-
-    PackageEpsonExt *p3 = new PackageEpsonExt;
-    p3->setCmd(0x5d);
-
-    d.append("00015");
-    d.append(PackageFiscal::FS);
-    d.append("COOKIE GRATIS en tu proxima compra.");
-    p3->setData(d);
-    queue.append(p3);
-    d.clear();
-
-    PackageEpsonExt *p4 = new PackageEpsonExt;
-    p4->setCmd(0x5d);
-
-    d.append("00016");
-    d.append(PackageFiscal::FS);
-    d.append("Restaurante ID: " + shop);
-    p4->setData(d);
-    queue.append(p4);
-    d.clear();
-
-    PackageEpsonExt *p5 = new PackageEpsonExt;
-    p5->setCmd(0x5d);
-
-    d.append("00017");
-    d.append(PackageFiscal::FS);
-    d.append("*************************************");
-    p5->setData(d);
-    queue.append(p5);
-    d.clear();
-
-    PackageEpsonExt *p6 = new PackageEpsonExt;
-    p6->setCmd(0x5d);
-
-    d.append("00018");
-    d.append(PackageFiscal::FS);
-    d.append(" ");
-    p6->setData(d);
-    queue.append(p6);
-    d.clear();
-
-    PackageEpsonExt *p7 = new PackageEpsonExt;
-    p7->setCmd(0x5d);
-
-    d.append("00019");
-    d.append(PackageFiscal::FS);
-    d.append(" ");
-    p7->setData(d);
-    queue.append(p7);
-    d.clear();
-
-    PackageEpsonExt *p8 = new PackageEpsonExt;
-    p8->setCmd(0x5d);
-
-    d.append("00020");
-    d.append(PackageFiscal::FS);
-    d.append(" ");
-    p8->setData(d);
-    queue.append(p8);
-    d.clear();
-
-    PackageEpsonExt *p9 = new PackageEpsonExt;
-    p9->setCmd(0x5d);
-
-    d.append("00021");
-    d.append(PackageFiscal::FS);
-    d.append(" ");
-    p9->setData(d);
-    queue.append(p9);
-    d.clear();
-
-    start();
+    setFooter(1, "DEFENSA CONSUMIDOR " + phone);
+    setFooter(2, "*************************************");
+    setFooter(3, "Entra con este ticket a:");
+    setFooter(4, "www.cuentaleasubway.com y llevate una");
+    setFooter(5, "COOKIE GRATIS en tu proxima compra.");
+    setFooter(6, "Restaurante ID: " + shop);
+    setFooter(7, "*************************************");
+    setFooter(8, "");
+    setFooter(9, "");
+    setFooter(10, "");
 }

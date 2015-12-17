@@ -66,10 +66,10 @@ public:
                     fp->dailyClose('Z');
                     break;
                 case 'd':
-                    fp->dailyCloseByDate(QDate(2015, 10, 10), QDate(2015, 12, 20));
+                    fp->dailyCloseByDate(QDate(2015, 12, 5), QDate(2015, 12, 12));
                     break;
                 case 'n':
-                    fp->dailyCloseByNumber(1, 20);
+                    fp->dailyCloseByNumber(12, 14);
                     break;
                 case 'f':
                     fp->setHeaderTrailer("", "test prueba si");
@@ -91,37 +91,44 @@ public:
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('A');
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
-                    fp->perceptions("2.5", 0.025);
-                    fp->totalTender("Efectivo", 1, 'T');
+                    //fp->perceptions("2.5", 0.025);
+                    //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('T', 'A', 1 + 0.025);
                     fp->setHeaderTrailer("", "");
                     break;
                 case 'B':
-                    fp->setEmbarkNumber(1, "001-00001-00000001");
                     fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('B');
                     fp->printLineItem("Producto", 1.00, 1.00, "21.00", 'M');
-                    fp->totalTender("Cheque", 1, 'T');
+                    //fp->generalDiscount("Cupon", 0.50, 'T');
+                    //fp->totalTender("Cheque", 1, 'T');
                     fp->closeFiscalReceipt('T', 'B', 1);
                     break;
                 case 'C':
                     fp->openFiscalReceipt('B');
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
-                    fp->totalTender("Contado", 1, 'T');
+                    //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('T', 'B', 1);
                     break;
                 case 'T':
                     fp->openFiscalReceipt('T');
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
-                    fp->totalTender("Contado", 1, 'T');
+                    //fp->totalTender("Contado", 0.5, 'T');
+                    //fp->totalTender("Tarjeta", 0.5, 'T');
+                    fp->closeFiscalReceipt('0', '0', 1);
+                    break;
+                case 'M':
+                    fp->openFiscalReceipt('M');
+                    fp->printLineItem("Producto", 1, 1, "21.00", 'M');
+                    //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('0', '0', 1);
                     break;
                 case 'D':
-                    fp->setEmbarkNumber(1, "999-0000678");
-                    fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
-                    fp->openDNFH('S', 'T', "12");
+                    //fp->setEmbarkNumber(1, "001-99999-0000678");
+                    fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
+                    fp->openDNFH('S', 'T', "123-45678-99999990");
                     fp->printLineItem("Producto", 1, 1, "21.00", 'M');
-                    fp->totalTender("Contado", 1, 'T');
+                    //fp->totalTender("Contado", 1, 'T');
                     fp->closeDNFH(1, 'r', 1);
                     break;
                 case 'w':
@@ -133,6 +140,9 @@ public:
                 case 't':
                     fp->setDateTime(QDateTime::currentDateTime());
                     //fp->totalTender("Cancelar", 0.00, 'C');
+                    break;
+                case 'O':
+                    fp->setFixedData("12346", "08001233333");
                     break;
                 case 'm':
                     for(int i = 0; i < 40; i++) {

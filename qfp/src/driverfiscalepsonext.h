@@ -111,12 +111,16 @@ protected:
 private:
     bool m_error;
     bool m_isinvoice;
+    bool m_iscreditnote;
     QVector<PackageEpsonExt *> queue;
     FiscalPrinter::Model m_model;
     int m_nak_count;
 
     void clear();
     void sendAck();
+    void verifyIntermediatePackage(QByteArray &bufferBytes);
+    void setFooter(int line, const QString &text);
+    bool checkSum(const QByteArray &data);
     QString m_name;
     QString m_cuit;
     char m_tax_type;
