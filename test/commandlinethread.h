@@ -90,7 +90,7 @@ public:
                     fp->setEmbarkNumber(1, "001-00001-00000001");
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('A');
-                    fp->printLineItem("Producto", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                     //fp->perceptions("2.5", 0.025);
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('T', 'A', 1 + 0.025);
@@ -99,27 +99,27 @@ public:
                 case 'B':
                     fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('B');
-                    fp->printLineItem("Producto", 1.00, 1.00, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1.00, 1.00, "21.00", 'M');
                     //fp->generalDiscount("Cupon", 0.50, 'T');
                     //fp->totalTender("Cheque", 1, 'T');
                     fp->closeFiscalReceipt('T', 'B', 1);
                     break;
                 case 'C':
                     fp->openFiscalReceipt('B');
-                    fp->printLineItem("Producto", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('T', 'B', 1);
                     break;
                 case 'T':
                     fp->openFiscalReceipt('T');
-                    fp->printLineItem("Producto", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                     //fp->totalTender("Contado", 0.5, 'T');
                     //fp->totalTender("Tarjeta", 0.5, 'T');
                     fp->closeFiscalReceipt('0', '0', 1);
                     break;
                 case 'M':
                     fp->openFiscalReceipt('M');
-                    fp->printLineItem("Producto", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('0', '0', 1);
                     break;
@@ -127,7 +127,7 @@ public:
                     //fp->setEmbarkNumber(1, "001-99999-0000678");
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openDNFH('S', 'T', "123-45678-99999990");
-                    fp->printLineItem("Producto", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeDNFH(1, 'r', 1);
                     break;

@@ -592,9 +592,12 @@ void DriverFiscalEpsonExt::printLineItem(const QString &description, const qreal
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
-    d.append(description.left(40));
+    QString code = description;
+    code.replace(" ", "");
+    code.remove(QRegExp("[^a-zA-Z//\\d\\s]"));
+    d.append(code.left(40));
     d.append(PackageFiscal::FS);
-    d.append("01");
+    d.append("07");
     d.append(PackageFiscal::FS);
     p->setData(d);
 
