@@ -97,13 +97,11 @@ void DriverFiscalEpsonExt::run()
 
             m_nak_count = 0;
 
-            if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE ||
+            if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE_CN) {
+                emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 1);
+            } else if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE ||
                     pkg->cmd() == CMD_CLOSEFISCALRECEIPT_TICKET || pkg->cmd() == CMD_CLOSEDNFH) {
-                if(pkg->data()[0] == 'M') {
-                    emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 1);
-                } else {
-                    emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 0);
-                }
+                emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 0);
             }
 
             queue.pop_front();
@@ -576,11 +574,11 @@ void DriverFiscalEpsonExt::printLineItem(const QString &description, const qreal
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
-    d.append(description.left(20));
+    d.append(description.left(40));
     d.append(PackageFiscal::FS);
     d.append(QString::number(quantity * 10000, 'f', 0));
     d.append(PackageFiscal::FS);
-    if (m_isinvoice) {
+    if (m_isinvoice || m_iscreditnote) {
         d.append(QString::number(price/(1+(tax.toDouble()/100)) * 10000, 'f', 0));
     } else {
         d.append(QString::number(price * 10000, 'f', 0));
@@ -617,10 +615,10 @@ void DriverFiscalEpsonExt::perceptions(const QString &desc, qreal tax_amount)
     d.append(0x20);
     // DATA
     d.append(PackageFiscal::FS);
-    d.append(0x04);
+    d.append(QByteArray::fromHex("0"));
     d.append(QByteArray::fromHex("0"));
     d.append(PackageFiscal::FS);
-    d.append(desc);
+    d.append(desc.left(30));
     d.append(PackageFiscal::FS);
     d.append(QString::number(tax_amount * 100, 'f', 0));
     d.append(PackageFiscal::FS);
@@ -684,14 +682,27 @@ void DriverFiscalEpsonExt::totalTender(const QString &description, const qreal a
     }
 
     d.append(PackageFiscal::FS);
-    d.append(description);
+    //d.append(description);
     d.append(PackageFiscal::FS);
-    d.append(description);
-    d.append(PackageFiscal::FS);
-    d.append(PackageFiscal::FS);
-    d.append(description);
+    //d.append(description);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    d.append(PackageFiscal::FS);
+    if (description == "Cheque") {
+        d.append("03");
+    } else if (description == "Cuenta Corriente") {
+        d.append("06");
+    } else if (description == "Banco") {
+        d.append("07");
+    } else if (description == "Tarjeta de Credito") {
+        d.append("20");
+    } else if (description == "Tarjeta de Debito") {
+        d.append("21");
+    } else {
+        d.append("08");
+    }
+
     d.append(PackageFiscal::FS);
     d.append(QString::number(amount * 100, 'f', 0));
 
@@ -712,15 +723,18 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
         d.append(0x04);
         d.append(PackageFiscal::FS);
         d.append(QByteArray::fromHex("0"));
-        d.append(QByteArray::fromHex("0"));
-        d.append(QByteArray::fromHex("0"));
     } else {
         d.append(0x0A);
         d.append(0x04);
         d.append(PackageFiscal::FS);
         d.append(QByteArray::fromHex("0"));
-        d.append(QByteArray::fromHex("0"));
     }
+
+
+    if (type == 'M')
+        d.append(QByteArray::fromHex("1"));
+    else
+        d.append(QByteArray::fromHex("0"));
 
     d.append(PackageFiscal::FS);
     d.append(description);
@@ -916,7 +930,7 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
-    d.append(doc_num.isEmpty() ? "901-99999-99999999" : doc_num);
+    d.append(doc_num.isEmpty() ? "902-99999-99999999" : doc_num);
 
     p->setData(d);
 
@@ -933,7 +947,7 @@ void DriverFiscalEpsonExt::closeDNFH(const int id, const char f_type, const int 
     Q_UNUSED(f_type);
     PackageEpsonExt *p = new PackageEpsonExt;
     p->setId(id);
-    p->setCmd(CMD_CLOSEFISCALRECEIPT_INVOICE);
+    p->setCmd(m_iscreditnote ? CMD_CLOSEFISCALRECEIPT_INVOICE_CN : CMD_CLOSEFISCALRECEIPT_INVOICE);
 
     QByteArray d;
     // CMD

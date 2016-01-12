@@ -99,9 +99,15 @@ public:
                 case 'B':
                     fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('B');
-                    fp->printLineItem("Producto de prueba", 1.00, 1.00, "21.00", 'M');
-                    //fp->generalDiscount("Cupon", 0.50, 'T');
-                    //fp->totalTender("Cheque", 1, 'T');
+                    fp->printLineItem("Producto de prueba", 1.00, 10.00, "21.00", 'M');
+                    //fp->generalDiscount("Recargo", 0.50, 'M');
+                    //fp->generalDiscount("Descuento", 0.10, 'm');
+                    fp->totalTender("Cheque", 1, 'T');
+                    fp->totalTender("Banco", 1, 'T');
+                    fp->totalTender("Tarjeta de Credito", 1, 'T');
+                    fp->totalTender("Tarjeta de Debito", 1, 'T');
+                    fp->totalTender("Cuenta Corriente", 1, 'T');
+                    fp->totalTender("Efectivo", 5, 'T');
                     fp->closeFiscalReceipt('T', 'B', 1);
                     break;
                 case 'C':
