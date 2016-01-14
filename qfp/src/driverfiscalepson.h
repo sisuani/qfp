@@ -103,7 +103,7 @@ public:
 
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC
-    void fiscalStatus(bool ok);
+    void fiscalStatus(int state);
 
 protected:
     void run();

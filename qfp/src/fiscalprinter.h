@@ -59,6 +59,14 @@ public:
     };
     Q_DECLARE_FLAGS(Models, Model)
 
+    enum State {
+        Ok,
+        Error,
+        FullFiscalMemory
+    };
+    Q_DECLARE_FLAGS(States, State)
+
+
     FiscalPrinter(QObject *parent = 0, FiscalPrinter::Brand brand = Epson,
             FiscalPrinter::Model model = EpsonTMU220, const QString &port_type = "COM",
             unsigned int port = 1, int m_TIME_WAIT = 300);

@@ -217,7 +217,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             m_serialPort->readAll();
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
     } else {
         log << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
@@ -232,7 +232,7 @@ bool DriverFiscalEpson::verifyResponse(const QByteArray &bytes, const int pkg_cm
         log << QString("NO STX %1").arg(bytes.toHex().data());
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -241,7 +241,7 @@ bool DriverFiscalEpson::verifyResponse(const QByteArray &bytes, const int pkg_cm
         log << QString("ERR - diff cmds: %1 %2").arg(QChar(bytes.at(2)).unicode()).arg(pkg_cmd);
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
 
         return false;
@@ -254,7 +254,7 @@ bool DriverFiscalEpson::verifyResponse(const QByteArray &bytes, const int pkg_cm
 
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -264,7 +264,7 @@ bool DriverFiscalEpson::verifyResponse(const QByteArray &bytes, const int pkg_cm
 
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -274,7 +274,7 @@ bool DriverFiscalEpson::verifyResponse(const QByteArray &bytes, const int pkg_cm
 
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }

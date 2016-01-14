@@ -90,7 +90,8 @@ public:
                     fp->setEmbarkNumber(1, "001-00001-00000001");
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('A');
-                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 100, "21.00", 'M');
+                    fp->generalDiscount("Descuento", 50, 'm');
                     //fp->perceptions("2.5", 0.025);
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('T', 'A', 1 + 0.025);
@@ -133,7 +134,8 @@ public:
                     //fp->setEmbarkNumber(1, "001-99999-0000678");
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openDNFH('S', 'T', "123-45678-99999990");
-                    fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
+                    fp->printLineItem("Producto de prueba", 1, 10, "21.00", 'M');
+                    fp->perceptions("Perc. Ej", 1);
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeDNFH(1, 'r', 1);
                     break;

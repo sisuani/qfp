@@ -104,7 +104,7 @@ public:
 
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC
-    void fiscalStatus(bool ok);
+    void fiscalStatus(int state);
 
 protected:
     void run();
@@ -122,6 +122,7 @@ private:
     void verifyIntermediatePackage(QByteArray &bufferBytes);
     void setFooter(int line, const QString &text);
     bool checkSum(const QByteArray &data);
+    bool processStatus(const QByteArray &data);
     QString m_name;
     QString m_cuit;
     char m_tax_type;

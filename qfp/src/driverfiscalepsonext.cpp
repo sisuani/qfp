@@ -95,6 +95,11 @@ void DriverFiscalEpsonExt::run()
                 continue;
             }
 
+            if (!processStatus(ret)) {
+                queue.clear();
+                continue;
+            }
+
             m_nak_count = 0;
 
             if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE_CN) {
@@ -114,6 +119,23 @@ void DriverFiscalEpsonExt::run()
             queue.clear();
         }
     }
+}
+
+bool DriverFiscalEpsonExt::processStatus(const QByteArray &data)
+{
+    QByteArray tmp = data;
+    tmp.remove(0, 5);
+    tmp.remove(2, tmp.size());
+
+    bool ok;
+    const int status = tmp.toHex().toInt(&ok, 16);
+
+    if (status & (1 << 11))  { // 11 FISCAL
+        emit fiscalStatus(FiscalPrinter::FullFiscalMemory);
+        return false;
+    }
+
+    return true;
 }
 
 void DriverFiscalEpsonExt::sendAck()
@@ -238,7 +260,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             m_serialPort->readAll();
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
     } else {
         log << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
@@ -290,7 +312,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
         log << QString("NO STX %1").arg(bytes.toHex().data());
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -300,7 +322,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
         log << QString("ERR - diff cmds: %1 %2").arg(QChar(bytes.at(2)).unicode()).arg(pkg_cmd);
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
 
         return false;
@@ -312,7 +334,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
 
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -323,7 +345,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
 
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -333,7 +355,7 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
 
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(false);
+            emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
@@ -610,8 +632,13 @@ void DriverFiscalEpsonExt::perceptions(const QString &desc, qreal tax_amount)
     p->setCmd(CMD_PERCEPTIONS);
 
     QByteArray d;
-    d.append(0x0B);
-    d.append(0x1B);
+    if (m_iscreditnote) {
+        d.append(0x0D);
+        d.append(0x1B);
+    } else {
+        d.append(0x0B);
+        d.append(0x1B);
+    }
     d.append(0x20);
     // DATA
     d.append(PackageFiscal::FS);
@@ -695,7 +722,7 @@ void DriverFiscalEpsonExt::totalTender(const QString &description, const qreal a
         d.append("06");
     } else if (description == "Banco") {
         d.append("07");
-    } else if (description == "Tarjeta de Credito") {
+    } else if ((description == "Tarjeta de Credito") || (description == "Mercado Pago")) {
         d.append("20");
     } else if (description == "Tarjeta de Debito") {
         d.append("21");
@@ -739,7 +766,10 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     d.append(PackageFiscal::FS);
     d.append(description);
     d.append(PackageFiscal::FS);
-    d.append(QString::number(amount * 100, 'f', 0));
+    if (m_isinvoice)
+        d.append(QString::number(amount * 100 / 1.21, 'f', 0));
+    else
+        d.append(QString::number(amount * 100, 'f', 0));
     d.append(PackageFiscal::FS);
     d.append("2100");
     d.append(PackageFiscal::FS);
@@ -901,8 +931,10 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
     m_iscreditnote = true;
     p->setCmd(CMD_OPENFISCALRECEIPT);
 
+    /*
     if (type == 'A')
         m_isinvoice = true;
+        */
 
     QByteArray d;
     // CMD
