@@ -67,8 +67,8 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
         dynamic_cast<DriverFiscalHasar *>(m_driverFiscal)->setModel(model);
         connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
                 this, SIGNAL(fiscalReceiptNumber(int, int, int)));
-        connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalStatus(bool)),
-                this, SIGNAL(fiscalStatus(bool)));
+        connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalStatus(int)),
+                this, SIGNAL(fiscalStatus(int)));
     }
 }
 

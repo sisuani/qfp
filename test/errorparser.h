@@ -12,7 +12,7 @@ public:
     ErrorParser(QObject *parent = 0, FiscalPrinter *fp = 0);
 
 public slots:
-    void fiscalStatus(bool ok);
+    void fiscalStatus(int state);
 
 private:
     FiscalPrinter *fp;

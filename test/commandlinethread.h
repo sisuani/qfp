@@ -47,7 +47,7 @@ public:
 
         fp = new FiscalPrinter(0, brand, model, port_type, port, 400);
         ep = new ErrorParser(0, fp);
-        connect(fp, SIGNAL(fiscalStatus(bool)), ep, SLOT(fiscalStatus(bool)));
+        connect(fp, SIGNAL(fiscalStatus(int)), ep, SLOT(fiscalStatus(int)));
         //fp->statusRequest();
     }
 
@@ -135,7 +135,8 @@ public:
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openDNFH('S', 'T', "123-45678-99999990");
                     fp->printLineItem("Producto de prueba", 1, 10, "21.00", 'M');
-                    fp->perceptions("Perc. Ej", 1);
+                    fp->generalDiscount("Descuento", 5, 'm');
+                    //fp->perceptions("Perc. Ej", 1);
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeDNFH(1, 'r', 1);
                     break;

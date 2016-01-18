@@ -11,8 +11,15 @@ ErrorParser::ErrorParser(QObject *parent, FiscalPrinter *fp)
     error_count = 0;
 }
 
-void ErrorParser::fiscalStatus(bool ok) {
-    if(!ok && error_count < 3) {
+void ErrorParser::fiscalStatus(int state) {
+
+
+    if (state == FiscalPrinter::FullFiscalMemory) {
+        qDebug() << "MEMORIA FISCAL LLENA";
+        return;
+    }
+
+    if(state == FiscalPrinter::Error && error_count < 3) {
         error_count++;
         qDebug() << "REPARANDO ERROR";
         fp->totalTender("Contado", 1, 'T');

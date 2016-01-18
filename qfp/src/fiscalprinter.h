@@ -108,7 +108,7 @@ public:
 
 signals:
     void fiscalReceiptNumber(int, int, int);
-    void fiscalStatus(bool);
+    void fiscalStatus(int);
 
 private:
     SerialPort *m_serialPort;

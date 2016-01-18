@@ -748,15 +748,16 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     if(m_isinvoice) {
         d.append(0x0B);
         d.append(0x04);
-        d.append(PackageFiscal::FS);
-        d.append(QByteArray::fromHex("0"));
+    } else if (m_iscreditnote) {
+        d.append(0x0D);
+        d.append(0x04);
     } else {
         d.append(0x0A);
         d.append(0x04);
-        d.append(PackageFiscal::FS);
-        d.append(QByteArray::fromHex("0"));
     }
 
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
 
     if (type == 'M')
         d.append(QByteArray::fromHex("1"));
@@ -766,7 +767,7 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     d.append(PackageFiscal::FS);
     d.append(description);
     d.append(PackageFiscal::FS);
-    if (m_isinvoice)
+    if (m_isinvoice || m_iscreditnote)
         d.append(QString::number(amount * 100 / 1.21, 'f', 0));
     else
         d.append(QString::number(amount * 100, 'f', 0));
@@ -958,7 +959,7 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
     d.append(PackageFiscal::FS);
     d.append(m_tax_type);
     d.append(PackageFiscal::FS);
-    d.append(m_refer.isEmpty() ? "901-99999-99999999" : m_refer);
+    //d.append(m_refer.isEmpty() ? "901-99999-99999999" : m_refer);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
@@ -1066,6 +1067,7 @@ void DriverFiscalEpsonExt::setFooter(int line, const QString &text)
 
 void DriverFiscalEpsonExt::clear()
 {
+    m_isinvoice = false;
     m_iscreditnote = false;
     m_name = "Consumidor Final";
     m_cuit = "0";
