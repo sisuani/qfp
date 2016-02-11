@@ -66,10 +66,10 @@ public:
                     fp->dailyClose('Z');
                     break;
                 case 'd':
-                    fp->dailyCloseByDate(QDate(2015, 12, 5), QDate(2015, 12, 12));
+                    fp->dailyCloseByDate(QDate(2016, 2, 1), QDate(2016, 2, 7));
                     break;
                 case 'n':
-                    fp->dailyCloseByNumber(12, 14);
+                    fp->dailyCloseByNumber(1, 12);
                     break;
                 case 'f':
                     fp->setHeaderTrailer("", "test prueba si");

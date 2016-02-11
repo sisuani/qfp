@@ -123,6 +123,8 @@ private:
     void setFooter(int line, const QString &text);
     bool checkSum(const QByteArray &data);
     bool processStatus(const QByteArray &data);
+    void continueAudit();
+    void closeAudit();
     QString m_name;
     QString m_cuit;
     char m_tax_type;

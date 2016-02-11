@@ -207,9 +207,9 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
 
             while(bufferBytes.at(0) != PackageFiscal::ETX) {
 
-                count_tw++;
                 if(bufferBytes.isEmpty()) {
                     SleeperThread::msleep(100);
+                    count_tw++;
                 }
 
                 if(bufferBytes.at(0) == PackageFiscal::STX) {
@@ -229,9 +229,9 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
             int checksumCount = 0;
             while(checksumCount != 4 && m_continue) {
                 checkSumArray = m_serialPort->read(1);
-                count_tw++;
                 if(checkSumArray.isEmpty()) {
                     SleeperThread::msleep(100);
+                    count_tw++;
                 } else {
                     checksumCount++;
                     bytes += checkSumArray;
@@ -247,11 +247,13 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
             verifyIntermediatePackage(bufferBytes);
             bytes += bufferBytes;
         }
-        count_tw++;
+
+        if (bufferBytes.isEmpty())
+            count_tw++;
 
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
-    //log << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
+    // log << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
 
     ok = verifyResponse(bytes, pkg_cmd);
 
@@ -455,6 +457,11 @@ void DriverFiscalEpsonExt::dailyCloseByDate(const QDate &from, const QDate &to)
 
     queue.append(p);
     start();
+
+    for (int i = 0; i <= from.daysTo(to); i++)
+        continueAudit();
+
+    closeAudit();
 }
 
 void DriverFiscalEpsonExt::dailyCloseByNumber(const int from, const int to)
@@ -475,8 +482,52 @@ void DriverFiscalEpsonExt::dailyCloseByNumber(const int from, const int to)
     d.append(QString::number(to));
     p->setData(d);
 
+
     queue.append(p);
     start();
+
+    for (int i = 0; i <= (to - from); i++)
+        continueAudit();
+
+    closeAudit();
+}
+
+void DriverFiscalEpsonExt::continueAudit()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DAILYCLOSEBYNUMBER);
+
+    QByteArray d;
+    d.append(0x08);
+    d.append(0x14);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+    p->setData(d);
+
+    queue.append(p);
+    start();
+
+}
+
+void DriverFiscalEpsonExt::closeAudit()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DAILYCLOSEBYNUMBER);
+
+    QByteArray d;
+    d.append(0x08);
+    d.append(0x15);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+    p->setData(d);
+
+    queue.append(p);
+    start();
+
 }
 
 void DriverFiscalEpsonExt::setCustomerData(const QString &name, const QString &cuit, const char tax_type,
@@ -767,7 +818,7 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     d.append(PackageFiscal::FS);
     d.append(description);
     d.append(PackageFiscal::FS);
-    if (m_isinvoice || m_iscreditnote)
+    if (m_tax_type == 'I')
         d.append(QString::number(amount * 100 / 1.21, 'f', 0));
     else
         d.append(QString::number(amount * 100, 'f', 0));
@@ -923,6 +974,10 @@ void DriverFiscalEpsonExt::setHeaderTrailer(const QString &header, const QString
 void DriverFiscalEpsonExt::setEmbarkNumber(const int doc_num, const QString &description)
 {
     m_refer = description;
+    if (m_tax_type == 'I')
+        m_refer.prepend("003-");
+    else
+        m_refer.prepend("008-");
 }
 
 void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const QString &doc_num)
@@ -931,6 +986,15 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
 
     m_iscreditnote = true;
     p->setCmd(CMD_OPENFISCALRECEIPT);
+
+    QString dn;
+    if (!doc_num.isEmpty()) {
+        dn = doc_num;
+        if (m_tax_type == 'I')
+            dn.prepend("003-");
+        else
+            dn.prepend("008-");
+    }
 
     /*
     if (type == 'A')
@@ -963,7 +1027,7 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
-    d.append(doc_num.isEmpty() ? "902-99999-99999999" : doc_num);
+    d.append(dn.isEmpty() ? "902-99999-99999999" : dn);
 
     p->setData(d);
 
