@@ -66,7 +66,7 @@ public:
                     fp->dailyClose('Z');
                     break;
                 case 'd':
-                    fp->dailyCloseByDate(QDate(2016, 2, 1), QDate(2016, 2, 7));
+                    fp->dailyCloseByDate(QDate(2016, 2, 1), QDate(2016, 2, 8));
                     break;
                 case 'n':
                     fp->dailyCloseByNumber(1, 12);

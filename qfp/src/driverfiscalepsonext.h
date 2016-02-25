@@ -61,6 +61,7 @@ public:
         CMD_CLOSEFISCALRECEIPT_INVOICE = 0x65,
         CMD_CLOSEFISCALRECEIPT_INVOICE_CN = 0x66,
         CMD_CLOSEDNFH               = 0xAB,
+        CMD_CONTINUEAUDIT           = 0xF0
     };
 
     void setModel(const FiscalPrinter::Model model);

@@ -107,6 +107,14 @@ void DriverFiscalEpsonExt::run()
             } else if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE ||
                     pkg->cmd() == CMD_CLOSEFISCALRECEIPT_TICKET || pkg->cmd() == CMD_CLOSEDNFH) {
                 emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 0);
+            } else if(pkg->cmd() == CMD_CONTINUEAUDIT) {
+                QByteArray tmp = ret;
+                tmp.remove(0, 9);
+                tmp.remove(2, tmp.size());
+                if (tmp.toHex() == QByteArray("0000"))
+                    continueAudit();
+                else
+                    closeAudit();
             }
 
             queue.pop_front();
@@ -458,10 +466,10 @@ void DriverFiscalEpsonExt::dailyCloseByDate(const QDate &from, const QDate &to)
     queue.append(p);
     start();
 
-    for (int i = 0; i <= from.daysTo(to); i++)
-        continueAudit();
+    continueAudit();
+    //for (int i = 0; i <= from.daysTo(to); i++)
 
-    closeAudit();
+    //closeAudit();
 }
 
 void DriverFiscalEpsonExt::dailyCloseByNumber(const int from, const int to)
@@ -486,16 +494,16 @@ void DriverFiscalEpsonExt::dailyCloseByNumber(const int from, const int to)
     queue.append(p);
     start();
 
-    for (int i = 0; i <= (to - from); i++)
-        continueAudit();
+    continueAudit();
+    // for (int i = 0; i <= (to - from); i++)
 
-    closeAudit();
+    //closeAudit();
 }
 
 void DriverFiscalEpsonExt::continueAudit()
 {
     PackageEpsonExt *p = new PackageEpsonExt;
-    p->setCmd(CMD_DAILYCLOSEBYNUMBER);
+    p->setCmd(CMD_CONTINUEAUDIT);
 
     QByteArray d;
     d.append(0x08);
