@@ -56,6 +56,8 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
             dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal)->setModel(model);
             connect(dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
                     this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+            connect(dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal), SIGNAL(fiscalData(int, QVariant)),
+                    this, SIGNAL(fiscalData(int, QVariant)));
         } else {
             m_driverFiscal = new DriverFiscalEpson(this, m_serialPort);
             dynamic_cast<DriverFiscalEpson *>(m_driverFiscal)->setModel(model);
@@ -224,7 +226,51 @@ void FiscalPrinter::receiptText(const QString &text)
     m_driverFiscal->receiptText(text);
 }
 
+void FiscalPrinter::reprintDocument(const QString &doc_type, const int doc_number)
+{
+    m_driverFiscal->reprintDocument(doc_type, doc_number);
+}
+
+void FiscalPrinter::reprintContinue()
+{
+    m_driverFiscal->reprintContinue();
+}
+
+void FiscalPrinter::reprintFinalize()
+{
+    m_driverFiscal->reprintFinalize();
+}
+
 void FiscalPrinter::setFixedData(const QString &shop, const QString &phone)
 {
     m_driverFiscal->setFixedData(shop, phone);
+}
+
+void FiscalPrinter::getTransactionalMemoryInfo()
+{
+    m_driverFiscal->getTransactionalMemoryInfo();
+}
+
+void FiscalPrinter::downloadReportByDate(const QString &type, const QDate &from, const QDate &to)
+{
+    m_driverFiscal->downloadReportByDate(type, from, to);
+}
+
+void FiscalPrinter::downloadReportByNumber(const QString &type, const int from, const int to)
+{
+    m_driverFiscal->downloadReportByNumber(type, from, to);
+}
+
+void FiscalPrinter::downloadContinue()
+{
+    m_driverFiscal->downloadContinue();
+}
+
+void FiscalPrinter::downloadFinalize()
+{
+    m_driverFiscal->downloadFinalize();
+}
+
+void FiscalPrinter::downloadDelete(const int to)
+{
 }

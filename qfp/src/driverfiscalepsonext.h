@@ -61,7 +61,16 @@ public:
         CMD_CLOSEFISCALRECEIPT_INVOICE = 0x65,
         CMD_CLOSEFISCALRECEIPT_INVOICE_CN = 0x66,
         CMD_CLOSEDNFH               = 0xAB,
-        CMD_CONTINUEAUDIT           = 0xF0
+        CMD_CONTINUEAUDIT           = 0xF0,
+        CMD_REPRINTDOCUMENT         = 0xF1,
+        CMD_REPRINTCONTINUE         = 0xF2,
+        CMD_REPRINTFINALIZE         = 0xF3,
+        CMD_GETTRANSACTIONALMEMORYINFO = 0xF4,
+        CMD_DOWNLOADREPORTBYDATE    = 0xF5,
+        CMD_DOWNLOADREPORTBYNUMBER  = 0xF6,
+        CMD_DOWNLOADCONTINUE        = 0xF7,
+        CMD_DOWNLOADFINALIZE        = 0xF8,
+        CMD_DOWNLOADDELETE          = 0xF9
     };
 
     void setModel(const FiscalPrinter::Model model);
@@ -97,15 +106,26 @@ public:
     virtual void printEmbarkItem(const QString &description, const qreal quantity);
     virtual void closeDNFH(const int id, const char f_type, const int copies);
     virtual void receiptText(const QString &text);
+    virtual void reprintDocument(const QString &doc_type, const int doc_number);
+    virtual void reprintContinue();
+    virtual void reprintFinalize();
     virtual void cancel();
     virtual void ack();
     virtual void setDateTime(const QDateTime &dateTime);
     virtual void setFixedData(const QString &shop, const QString &phone);
     virtual void finish();
 
+    virtual void getTransactionalMemoryInfo();
+    virtual void downloadReportByDate(const QString &type, const QDate &form, const QDate &to);
+    virtual void downloadReportByNumber(const QString &type, const int from, const int to);
+    virtual void downloadContinue();
+    virtual void downloadFinalize();
+    virtual void downloadDelete(const int to);
+
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC
     void fiscalStatus(int state);
+    void fiscalData(int cmd, QVariant data);
 
 protected:
     void run();

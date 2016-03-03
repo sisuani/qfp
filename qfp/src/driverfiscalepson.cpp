@@ -791,6 +791,18 @@ void DriverFiscalEpson::receiptText(const QString &text)
 {
 }
 
+void DriverFiscalEpson::reprintDocument(const QString &doc_type, const int doc_number)
+{
+}
+
+void DriverFiscalEpson::reprintContinue()
+{
+}
+
+void DriverFiscalEpson::reprintFinalize()
+{
+}
+
 void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 {
     QByteArray d;
@@ -907,4 +919,28 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
     d.clear();
 
     start();
+}
+
+void DriverFiscalEpson::getTransactionalMemoryInfo()
+{
+}
+
+void DriverFiscalEpson::downloadReportByDate(const QString &type, const QDate &form, const QDate &to)
+{
+}
+
+void DriverFiscalEpson::downloadReportByNumber(const QString &type, const int from, const int to)
+{
+}
+
+void DriverFiscalEpson::downloadContinue()
+{
+}
+
+void DriverFiscalEpson::downloadFinalize()
+{
+}
+
+void DriverFiscalEpson::downloadDelete(const int to)
+{
 }

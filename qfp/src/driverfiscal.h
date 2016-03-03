@@ -96,11 +96,21 @@ public:
     virtual void printEmbarkItem(const QString &description, const qreal quantity) = 0;
     virtual void closeDNFH(const int id, const char f_type, const int copies) = 0;
     virtual void receiptText(const QString &text) = 0;
+    virtual void reprintDocument(const QString &doc_type, const int doc_number) = 0;
+    virtual void reprintContinue() = 0;
+    virtual void reprintFinalize() = 0;
     virtual void cancel() = 0;
     virtual void ack() = 0;
     virtual void setDateTime(const QDateTime &dateTime) = 0;
     virtual void setFixedData(const QString &shop, const QString &phone) = 0;
     virtual void finish() = 0;
+
+    virtual void getTransactionalMemoryInfo() = 0;
+    virtual void downloadReportByDate(const QString &type, const QDate &form, const QDate &to) = 0;
+    virtual void downloadReportByNumber(const QString &type, const int from, const int to) = 0;
+    virtual void downloadContinue() = 0;
+    virtual void downloadFinalize() = 0;
+    virtual void downloadDelete(const int to) = 0;
 
 
 protected:

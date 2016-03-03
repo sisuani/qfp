@@ -115,7 +115,20 @@ void DriverFiscalEpsonExt::run()
                     continueAudit();
                 else
                     closeAudit();
+            } else if(pkg->cmd() == CMD_DOWNLOADREPORTBYNUMBER ||
+                    pkg->cmd() == CMD_DOWNLOADREPORTBYDATE) {
+
+                QByteArray tmp = ret;
+                tmp.remove(0, 13);
+                tmp.remove(tmp.size()-5, tmp.size());
+                emit fiscalData(FiscalPrinter::DownloadReport, tmp.data());
+            } else if(pkg->cmd() == CMD_DOWNLOADCONTINUE) {
+                QByteArray tmp = ret;
+                tmp.remove(0, 13);
+                tmp.remove(tmp.size()-7, tmp.size());
+                emit fiscalData(FiscalPrinter::DownloadContinue, tmp.data());
             }
+
 
             queue.pop_front();
             sendAck();
@@ -215,9 +228,15 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
 
             while(bufferBytes.at(0) != PackageFiscal::ETX) {
 
+                if(count_tw >= MAX_TW)
+                    break;
+
                 if(bufferBytes.isEmpty()) {
                     SleeperThread::msleep(100);
                     count_tw++;
+                } else {
+                    if (count_tw > 100)
+                        count_tw -= 20;
                 }
 
                 if(bufferBytes.at(0) == PackageFiscal::STX) {
@@ -227,8 +246,6 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
                 bytes += bufferBytes;
                 bufferBytes = m_serialPort->read(1);
 
-                if(count_tw >= MAX_TW)
-                    break;
             }
 
             bytes += PackageFiscal::ETX;
@@ -241,6 +258,9 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
                     SleeperThread::msleep(100);
                     count_tw++;
                 } else {
+                    if (count_tw > 100)
+                        count_tw -= 20;
+
                     checksumCount++;
                     bytes += checkSumArray;
                 }
@@ -261,7 +281,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
 
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
-    // log << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
+    qDebug() << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
 
     ok = verifyResponse(bytes, pkg_cmd);
 
@@ -467,9 +487,6 @@ void DriverFiscalEpsonExt::dailyCloseByDate(const QDate &from, const QDate &to)
     start();
 
     continueAudit();
-    //for (int i = 0; i <= from.daysTo(to); i++)
-
-    //closeAudit();
 }
 
 void DriverFiscalEpsonExt::dailyCloseByNumber(const int from, const int to)
@@ -1154,6 +1171,72 @@ void DriverFiscalEpsonExt::receiptText(const QString &text)
 {
 }
 
+
+void DriverFiscalEpsonExt::reprintDocument(const QString &doc_type, const int doc_number)
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_REPRINTDOCUMENT);
+
+    QByteArray d;
+    // CMD
+    d.append(0x08);
+    d.append(0xF0);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(0x01);
+
+    d.append(PackageFiscal::FS);
+    d.append(doc_type);
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(doc_number));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
+void DriverFiscalEpsonExt::reprintContinue()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_REPRINTCONTINUE);
+
+    QByteArray d;
+    // CMD
+    d.append(0x08);
+    d.append(0xF4);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
+void DriverFiscalEpsonExt::reprintFinalize()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_REPRINTFINALIZE);
+
+    QByteArray d;
+    // CMD
+    d.append(0x08);
+    d.append(0xF5);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
 void DriverFiscalEpsonExt::setFixedData(const QString &shop, const QString &phone)
 {
     setFooter(1, "DEFENSA CONSUMIDOR " + phone);
@@ -1166,4 +1249,141 @@ void DriverFiscalEpsonExt::setFixedData(const QString &shop, const QString &phon
     setFooter(8, "");
     setFooter(9, "");
     setFooter(10, "");
+}
+
+
+void DriverFiscalEpsonExt::getTransactionalMemoryInfo()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_GETTRANSACTIONALMEMORYINFO);
+
+    QByteArray d;
+    // CMD
+    d.append(0x09);
+    d.append(0x15);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
+void DriverFiscalEpsonExt::downloadReportByDate(const QString &type, const QDate &from, const QDate &to)
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DOWNLOADREPORTBYDATE);
+
+    QByteArray d;
+    d.append(0x09);
+    d.append(0x51);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    if (type == "CTD")
+        d.append(QByteArray::fromHex("0"));
+    else if (type == "A")
+        d.append(0x02);
+    else
+        d.append(0x04);
+    d.append(PackageFiscal::FS);
+    d.append(from.toString("ddMMyy"));
+    d.append(PackageFiscal::FS);
+    d.append(to.toString("ddMMyy"));
+    p->setData(d);
+
+    queue.append(p);
+    start();
+}
+
+void DriverFiscalEpsonExt::downloadReportByNumber(const QString &type, const int from, const int to)
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DOWNLOADREPORTBYNUMBER);
+
+    QByteArray d;
+    d.append(0x09);
+    d.append(0x52);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    if (type == "CTD")
+        d.append(QByteArray::fromHex("0"));
+    else if (type == "A")
+        d.append(0x02);
+    else
+        d.append(0x04);
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(from));
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(to));
+    p->setData(d);
+
+    queue.append(p);
+    start();
+}
+
+void DriverFiscalEpsonExt::downloadContinue()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DOWNLOADCONTINUE);
+
+    QByteArray d;
+    // CMD
+    d.append(0x09);
+    d.append(0x70);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
+void DriverFiscalEpsonExt::downloadFinalize()
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DOWNLOADFINALIZE);
+
+    QByteArray d;
+    // CMD
+    d.append(0x09);
+    d.append(0x71);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
+}
+
+void DriverFiscalEpsonExt::downloadDelete(const int to)
+{
+    PackageEpsonExt *p = new PackageEpsonExt;
+    p->setCmd(CMD_DOWNLOADDELETE);
+
+    QByteArray d;
+    // CMD
+    d.append(0x09);
+    d.append(0x10);
+    // DATA
+    d.append(PackageFiscal::FS);
+    d.append(QByteArray::fromHex("0"));
+    d.append(QByteArray::fromHex("0"));
+    d.append(PackageFiscal::FS);
+    d.append(QString::number(to));
+
+    p->setData(d);
+    queue.append(p);
+
+    start();
 }

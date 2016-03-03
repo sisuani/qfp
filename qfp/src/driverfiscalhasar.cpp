@@ -826,6 +826,18 @@ void DriverFiscalHasar::receiptText(const QString &text)
     start();
 }
 
+void DriverFiscalHasar::reprintDocument(const QString &doc_type, const int doc_number)
+{
+}
+
+void DriverFiscalHasar::reprintContinue()
+{
+}
+
+void DriverFiscalHasar::reprintFinalize()
+{
+}
+
 void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 {
     QByteArray d;
@@ -948,4 +960,28 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     */
 
     start();
+}
+
+void DriverFiscalHasar::getTransactionalMemoryInfo()
+{
+}
+
+void DriverFiscalHasar::downloadReportByDate(const QString &type, const QDate &form, const QDate &to)
+{
+}
+
+void DriverFiscalHasar::downloadReportByNumber(const QString &type, const int from, const int to)
+{
+}
+
+void DriverFiscalHasar::downloadContinue()
+{
+}
+
+void DriverFiscalHasar::downloadFinalize()
+{
+}
+
+void DriverFiscalHasar::downloadDelete(const int to)
+{
 }

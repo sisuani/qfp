@@ -103,15 +103,26 @@ public:
     virtual void printEmbarkItem(const QString &description, const qreal quantity);
     virtual void closeDNFH(const int id, const char f_type, const int copies);
     virtual void receiptText(const QString &text);
+    virtual void reprintDocument(const QString &doc_type, const int doc_number);
+    virtual void reprintContinue();
+    virtual void reprintFinalize();
     virtual void cancel();
     virtual void ack();
     virtual void setDateTime(const QDateTime &dateTime);
     virtual void setFixedData(const QString &shop, const QString &phone);
     virtual void finish();
 
+    virtual void getTransactionalMemoryInfo();
+    virtual void downloadReportByDate(const QString &type, const QDate &form, const QDate &to);
+    virtual void downloadReportByNumber(const QString &type, const int from, const int to);
+    virtual void downloadContinue();
+    virtual void downloadFinalize();
+    virtual void downloadDelete(const int to);
+
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC
     void fiscalStatus(int state);
+    void fiscalData(int cmd, QVariant data);
 
 protected:
     void run();

@@ -62,7 +62,9 @@ public:
     enum State {
         Ok,
         Error,
-        FullFiscalMemory
+        FullFiscalMemory,
+        DownloadReport,
+        DownloadContinue
     };
     Q_DECLARE_FLAGS(States, State)
 
@@ -101,14 +103,25 @@ public:
     void printEmbarkItem(const QString &description, const qreal quantity);
     void closeDNFH(const int id, const char f_type, const int copies);
     void receiptText(const QString &text);
+    void reprintDocument(const QString &doc_type, const int doc_number);
+    void reprintContinue();
+    void reprintFinalize();
     void cancel();
     void ack();
     void setDateTime(const QDateTime &dateTime);
     void setFixedData(const QString &shop, const QString &phone);
 
+    void getTransactionalMemoryInfo();
+    void downloadReportByDate(const QString &type, const QDate &form, const QDate &to);
+    void downloadReportByNumber(const QString &type, const int from, const int to);
+    void downloadContinue();
+    void downloadFinalize();
+    void downloadDelete(const int to);
+
 signals:
     void fiscalReceiptNumber(int, int, int);
     void fiscalStatus(int);
+    void fiscalData(int, QVariant);
 
 private:
     SerialPort *m_serialPort;

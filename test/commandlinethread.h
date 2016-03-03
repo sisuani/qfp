@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <QDebug>
 #include <QCoreApplication>
+#include <QFile>
 
 #include "errorparser.h"
 #include "../qfp/src/fiscalprinter.h"
@@ -48,7 +49,8 @@ public:
         fp = new FiscalPrinter(0, brand, model, port_type, port, 400);
         ep = new ErrorParser(0, fp);
         connect(fp, SIGNAL(fiscalStatus(int)), ep, SLOT(fiscalStatus(int)));
-        //fp->statusRequest();
+        connect(fp, SIGNAL(fiscalData(int, QVariant)), this, SLOT(fiscalData(int, QVariant)));
+        fp->statusRequest();
     }
 
     void run(void) {
@@ -140,6 +142,21 @@ public:
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeDNFH(1, 'r', 1);
                     break;
+                case 'r':
+                    fp->reprintDocument("081", 20);
+                    fp->reprintContinue();
+                    fp->reprintFinalize();
+                    break;
+                case 'i':
+                    fp->getTransactionalMemoryInfo();
+                    pause();
+                    pause();
+                    fp->downloadReportByNumber("CTD", 1, 10);
+                    pause();
+                    fp->downloadContinue();
+                    fp->downloadContinue();
+                    pause();
+                    fp->downloadFinalize();
                 case 'w':
                     fp->openDrawer();
                     break;
@@ -165,7 +182,19 @@ public:
 
     }
 
+private slots:
+    void fiscalData(int cmd, QVariant data) {
+        qDebug() << "CMD: " << cmd;
+        qDebug() << "DATA: " << data;
+    }
+
 private:
+    void pause() {
+        qDebug() << "PASUSE";
+        QFile in;
+        in.open(stdin, QIODevice::ReadOnly);
+        QString line = in.readLine();
+    }
     FiscalPrinter *fp;
     ErrorParser *ep;
 };
