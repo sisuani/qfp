@@ -45,6 +45,7 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
 {
     m_serialPort = new SerialPort(port_type, port);
     qDebug() << "serialport - " << port_type << port << m_serialPort->isOpen();
+    m_model = model;
     if(model == EpsonTMU220 || model == EpsonTM900 || model == Hasar615F || model == Hasar715F)
         m_supportTicket = true;
     else
@@ -82,6 +83,11 @@ FiscalPrinter::~FiscalPrinter()
             m_serialPort->close();
         delete m_serialPort;
     }
+}
+
+int FiscalPrinter::model()
+{
+    return m_model;
 }
 
 bool FiscalPrinter::supportTicket()

@@ -74,6 +74,7 @@ public:
             unsigned int port = 1, int m_TIME_WAIT = 300);
 
     ~FiscalPrinter();
+    int model();
     bool isOpen();
     bool supportTicket();
 
@@ -127,6 +128,7 @@ private:
     SerialPort *m_serialPort;
     DriverFiscal *m_driverFiscal;
     bool m_supportTicket;
+    int m_model;
 };
 
 Q_DECLARE_OPERATORS_FOR_FLAGS(FiscalPrinter::Brands)
