@@ -64,7 +64,8 @@ public:
         Error,
         FullFiscalMemory,
         DownloadReport,
-        DownloadContinue
+        DownloadContinue,
+        DownloadFinalize
     };
     Q_DECLARE_FLAGS(States, State)
 
@@ -92,7 +93,7 @@ public:
     void perceptions(const QString &desc, qreal tax_amount);
     void subtotal(const char print);
     void totalTender(const QString &description, const qreal amount, const char type);
-    void generalDiscount(const QString &description, const qreal amount, const char type);
+    void generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type);
     void closeFiscalReceipt(const char intype, const char type, const int id);
     void openNonFiscalReceipt();
     void printNonFiscalText(const QString &text);

@@ -90,7 +90,7 @@ public:
             const qreal price, const QString &tax, const char qualifier);
     virtual void perceptions(const QString &desc, qreal tax_amount);
     virtual void subtotal(const char print);
-    virtual void generalDiscount(const QString &description, const qreal amount, const char type);
+    virtual void generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type);
     virtual void totalTender(const QString &description, const qreal amount, const char type);
     virtual void closeFiscalReceipt(const char intype, const char f_type, const int id);
     virtual void openNonFiscalReceipt();

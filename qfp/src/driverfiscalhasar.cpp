@@ -594,7 +594,7 @@ void DriverFiscalHasar::totalTender(const QString &description, const qreal amou
     start();
 }
 
-void DriverFiscalHasar::generalDiscount(const QString &description, const qreal amount, const char type)
+void DriverFiscalHasar::generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type)
 {
     PackageHasar *p = new PackageHasar;
     p->setCmd(CMD_GENERALDISCOUNT);

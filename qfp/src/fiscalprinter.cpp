@@ -157,9 +157,9 @@ void FiscalPrinter::totalTender(const QString &description, const qreal amount, 
     m_driverFiscal->totalTender(description, amount, type);
 }
 
-void FiscalPrinter::generalDiscount(const QString &description, const qreal amount, const char type)
+void FiscalPrinter::generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type)
 {
-    m_driverFiscal->generalDiscount(description, amount, type);
+    m_driverFiscal->generalDiscount(description, amount, tax_percent, type);
 }
 
 void FiscalPrinter::closeFiscalReceipt(const char intype, const char type, const int id)

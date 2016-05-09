@@ -102,12 +102,12 @@ void DriverFiscalEpsonExt::run()
 
             m_nak_count = 0;
 
-            if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE_CN) {
+            if (pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE_CN) {
                 emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 1);
-            } else if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE ||
+            } else if (pkg->cmd() == CMD_CLOSEFISCALRECEIPT_INVOICE ||
                     pkg->cmd() == CMD_CLOSEFISCALRECEIPT_TICKET || pkg->cmd() == CMD_CLOSEDNFH) {
                 emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), 0);
-            } else if(pkg->cmd() == CMD_CONTINUEAUDIT) {
+            } else if (pkg->cmd() == CMD_CONTINUEAUDIT) {
                 QByteArray tmp = ret;
                 tmp.remove(0, 9);
                 tmp.remove(2, tmp.size());
@@ -115,18 +115,20 @@ void DriverFiscalEpsonExt::run()
                     continueAudit();
                 else
                     closeAudit();
-            } else if(pkg->cmd() == CMD_DOWNLOADREPORTBYNUMBER ||
+            } else if (pkg->cmd() == CMD_DOWNLOADREPORTBYNUMBER ||
                     pkg->cmd() == CMD_DOWNLOADREPORTBYDATE) {
 
                 QByteArray tmp = ret;
                 tmp.remove(0, 13);
                 tmp.remove(tmp.size()-5, tmp.size());
                 emit fiscalData(FiscalPrinter::DownloadReport, tmp.data());
-            } else if(pkg->cmd() == CMD_DOWNLOADCONTINUE) {
+            } else if (pkg->cmd() == CMD_DOWNLOADCONTINUE) {
                 QByteArray tmp = ret;
                 tmp.remove(0, 13);
                 tmp.remove(tmp.size()-7, tmp.size());
                 emit fiscalData(FiscalPrinter::DownloadContinue, tmp.data());
+            } else if (pkg->cmd() == CMD_DOWNLOADFINALIZE) {
+                emit fiscalData(FiscalPrinter::DownloadFinalize, QVariant());
             }
 
 
@@ -815,7 +817,7 @@ void DriverFiscalEpsonExt::totalTender(const QString &description, const qreal a
     start();
 }
 
-void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qreal amount, const char type)
+void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type)
 {
     PackageEpsonExt *p = new PackageEpsonExt;
     p->setCmd(m_isinvoice ? CMD_PRINTLINEITEM_INVOICE : CMD_PRINTLINEITEM_TICKET);
@@ -843,12 +845,17 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     d.append(PackageFiscal::FS);
     d.append(description);
     d.append(PackageFiscal::FS);
-    if (m_tax_type == 'I')
-        d.append(QString::number(amount * 100 / 1.21, 'f', 0));
-    else
+
+    if(m_tax_type == 'I') {
+        d.append(QString::number((amount / (1 + tax_percent/100)) * 100, 'f', 0));
+        d.append(PackageFiscal::FS);
+        d.append(QString::number(tax_percent * 100));
+    } else {
         d.append(QString::number(amount * 100, 'f', 0));
-    d.append(PackageFiscal::FS);
-    d.append("2100");
+        d.append(PackageFiscal::FS);
+        d.append(QString::number(tax_percent * 100));
+    }
+
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
 

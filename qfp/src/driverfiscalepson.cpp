@@ -109,7 +109,7 @@ void DriverFiscalEpson::run()
 
         } else {
             log << QString("FISCAL ERROR?");
-            queue.clear();
+            //queue.clear();
         }
     }
 }
@@ -541,7 +541,7 @@ void DriverFiscalEpson::totalTender(const QString &description, const qreal amou
     start();
 }
 
-void DriverFiscalEpson::generalDiscount(const QString &description, const qreal amount, const char type)
+void DriverFiscalEpson::generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type)
 {
     PackageEpson *p = new PackageEpson;
     p->setCmd(m_isinvoice ? CMD_PRINTLINEITEM_INVOICE : CMD_PRINTLINEITEM_TICKET);
@@ -552,14 +552,14 @@ void DriverFiscalEpson::generalDiscount(const QString &description, const qreal 
     d.append("1000");
     d.append(PackageFiscal::FS);
     if(m_tax_type == 'I') {
-        d.append(QString::number((amount/1.21) * 100, 'f', 0));
-//	const qreal a = amount * 21 / 100;
- //       d.append(QString::number((amount) * 100, 'f', 0));
+        d.append(QString::number((amount/(1 + tax_percent/100)) * 100, 'f', 0));
+        d.append(PackageFiscal::FS);
+        d.append(QString::number(tax_percent * 100));
     } else {
         d.append(QString::number(amount * 100, 'f', 0));
+        d.append(PackageFiscal::FS);
+        d.append(QString::number(tax_percent * 100));
     }
-    d.append(PackageFiscal::FS);
-    d.append("2100");
     d.append(PackageFiscal::FS);
     d.append(type == 'M' ? 'M' : 'R');
     d.append(PackageFiscal::FS);

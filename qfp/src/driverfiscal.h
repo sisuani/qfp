@@ -83,7 +83,7 @@ public:
             const qreal price, const QString &tax, const char qualifier) = 0;
     virtual void perceptions(const QString &desc, qreal tax_amount) = 0;
     virtual void subtotal(const char print) = 0;
-    virtual void generalDiscount(const QString &description, const qreal amount, const char type) = 0;
+    virtual void generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type) = 0;
     virtual void totalTender(const QString &description, const qreal amount, const char type) = 0;
     virtual void closeFiscalReceipt(const char intype, const char type, const int id) = 0;
     virtual void openNonFiscalReceipt() = 0;
