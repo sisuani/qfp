@@ -59,11 +59,15 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
                     this, SIGNAL(fiscalReceiptNumber(int, int, int)));
             connect(dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal), SIGNAL(fiscalData(int, QVariant)),
                     this, SIGNAL(fiscalData(int, QVariant)));
+            connect(dynamic_cast<DriverFiscalEpsonExt *>(m_driverFiscal), SIGNAL(fiscalStatus(int)),
+                    this, SIGNAL(fiscalStatus(int)));
         } else {
             m_driverFiscal = new DriverFiscalEpson(this, m_serialPort);
             dynamic_cast<DriverFiscalEpson *>(m_driverFiscal)->setModel(model);
             connect(dynamic_cast<DriverFiscalEpson *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
                     this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+            connect(dynamic_cast<DriverFiscalEpson *>(m_driverFiscal), SIGNAL(fiscalStatus(int)),
+                    this, SIGNAL(fiscalStatus(int)));
         }
     } else {
         m_driverFiscal = new DriverFiscalHasar(this, m_serialPort, m_TIME_WAIT);

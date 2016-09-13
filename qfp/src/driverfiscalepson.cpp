@@ -221,6 +221,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
         }
     } else {
         log << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
+        emit fiscalStatus(FiscalPrinter::Ok);
     }
 
     return bytes;
