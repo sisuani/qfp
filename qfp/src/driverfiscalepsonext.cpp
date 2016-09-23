@@ -640,7 +640,7 @@ void DriverFiscalEpsonExt::printFiscalText(const QString &text)
 }
 
 void DriverFiscalEpsonExt::printLineItem(const QString &description, const qreal quantity,
-        const qreal price, const QString &tax, const char qualifier)
+        const qreal price, const QString &tax, const char qualifier, const qreal excise)
 {
 
     PackageEpsonExt *p = new PackageEpsonExt;

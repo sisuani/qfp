@@ -141,9 +141,9 @@ void FiscalPrinter::printFiscalText(const QString &text)
 }
 
 void FiscalPrinter::printLineItem(const QString &description, const qreal quantity,
-        const qreal price, const QString &tax, const char qualifier)
+        const qreal price, const QString &tax, const char qualifier, const qreal excise)
 {
-    m_driverFiscal->printLineItem(description, quantity, price, tax, qualifier);
+    m_driverFiscal->printLineItem(description, quantity, price, tax, qualifier, excise);
 }
 
 void FiscalPrinter::perceptions(const QString &desc, qreal tax_amount)

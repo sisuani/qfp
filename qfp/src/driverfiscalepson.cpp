@@ -442,7 +442,7 @@ void DriverFiscalEpson::printFiscalText(const QString &text)
 }
 
 void DriverFiscalEpson::printLineItem(const QString &description, const qreal quantity,
-        const qreal price, const QString &tax, const char qualifier)
+        const qreal price, const QString &tax, const char qualifier, const qreal excise)
 {
 
     PackageEpson *p = new PackageEpson;
@@ -476,13 +476,14 @@ void DriverFiscalEpson::printLineItem(const QString &description, const qreal qu
         d.append(PackageFiscal::FS);
         d.append("0000");
         d.append(PackageFiscal::FS);
-        d.append("00000000000000000");
+        d.append(QString::number(excise * 100000000, 'f', 0).rightJustified(15, '0'));
     } else {
         d.append("0");
         d.append(PackageFiscal::FS);
         d.append("00000000");
         d.append(PackageFiscal::FS);
-        d.append("00000000000000000");
+        d.append(QString::number(excise * 100000000, 'f', 0).rightJustified(15, '0'));
+        //d.append("00000000000000000");
     }
     p->setData(d);
 

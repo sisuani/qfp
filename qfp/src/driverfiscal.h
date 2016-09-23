@@ -80,7 +80,7 @@ public:
     virtual void openFiscalReceipt(const char type) = 0;
     virtual void printFiscalText(const QString &text) = 0;
     virtual void printLineItem(const QString &description, const qreal quantity,
-            const qreal price, const QString &tax, const char qualifier) = 0;
+            const qreal price, const QString &tax, const char qualifier, const qreal excise) = 0;
     virtual void perceptions(const QString &desc, qreal tax_amount) = 0;
     virtual void subtotal(const char print) = 0;
     virtual void generalDiscount(const QString &description, const qreal amount, const qreal tax_percent, const char type) = 0;

@@ -89,7 +89,7 @@ public:
     void openFiscalReceipt(const char type);
     void printFiscalText(const QString &text);
     void printLineItem(const QString &description, const qreal quantity,
-            const qreal price, const QString &tax, const char qualifier);
+            const qreal price, const QString &tax, const char qualifier, const qreal excise = 0);
     void perceptions(const QString &desc, qreal tax_amount);
     void subtotal(const char print);
     void totalTender(const QString &description, const qreal amount, const char type);

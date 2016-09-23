@@ -44,7 +44,7 @@ public:
         }
 
 
-        QString port_type = "COM";
+        QString port_type = "USB";
 
         fp = new FiscalPrinter(0, brand, model, port_type, port, 400);
         ep = new ErrorParser(0, fp);
@@ -93,9 +93,9 @@ public:
                     fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                     fp->openFiscalReceipt('A');
                     fp->printLineItem("Producto de prueba", 1, 100, "21.00", 'M');
-                    fp->printLineItem("Producto de prueba", 1, 50, "10.50", 'M');
-                    fp->generalDiscount("Descuento", 12, 21.0, 'm');
-                    fp->generalDiscount("Descuento", 8, 10.5, 'm');
+                    //fp->printLineItem("Producto de prueba", 1, 50, "10.50", 'M');
+                    //fp->generalDiscount("Descuento", 12, 21.0, 'm');
+                    //fp->generalDiscount("Descuento", 8, 10.5, 'm');
                     //fp->perceptions("2.5", 0.025);
                     //fp->totalTender("Contado", 1, 'T');
                     fp->closeFiscalReceipt('T', 'A', 1 + 0.025);
