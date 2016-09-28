@@ -454,7 +454,7 @@ void DriverFiscalEpson::printLineItem(const QString &description, const qreal qu
     d.append(QString::number(quantity * 1000, 'f', 0));
     d.append(PackageFiscal::FS);
     if(m_tax_type == 'I') {
-        d.append(QString::number(price/(1+(tax.toDouble()/100)) * 100, 'f', 0));
+        d.append(QString::number(price/(1+(tax.toDouble()/100 + excise/100)) * 100, 'f', 0));
     } else {
         d.append(QString::number(price * 100, 'f', 0));
     }
@@ -463,6 +463,13 @@ void DriverFiscalEpson::printLineItem(const QString &description, const qreal qu
     d.append(PackageFiscal::FS);
     d.append(qualifier);
     d.append(PackageFiscal::FS);
+
+    qreal e = 0;
+    if (excise != 0.00) {
+        const qreal n = price/(1+(tax.toDouble()/100+excise/100));
+        e = ((excise/100+1)*n)-n;
+    }
+
     if(m_isinvoice) {
         d.append("0000");
         d.append(PackageFiscal::FS);
@@ -476,14 +483,13 @@ void DriverFiscalEpson::printLineItem(const QString &description, const qreal qu
         d.append(PackageFiscal::FS);
         d.append("0000");
         d.append(PackageFiscal::FS);
-        d.append(QString::number(excise * 100000000, 'f', 0).rightJustified(15, '0'));
+        d.append(QString::number(e * 100000000, 'f', 0).rightJustified(15, '0'));
     } else {
         d.append("0");
         d.append(PackageFiscal::FS);
         d.append("00000000");
         d.append(PackageFiscal::FS);
-        d.append(QString::number(excise * 100000000, 'f', 0).rightJustified(15, '0'));
-        //d.append("00000000000000000");
+        d.append(QString::number(e * 100000000, 'f', 0).rightJustified(15, '0'));
     }
     p->setData(d);
 

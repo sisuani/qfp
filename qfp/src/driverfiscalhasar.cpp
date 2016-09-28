@@ -305,6 +305,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd)
         return "-1";
     } else {
         qDebug() << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
+        emit fiscalStatus(FiscalPrinter::Ok);
     }
 
     return bytes;
