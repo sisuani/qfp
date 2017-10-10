@@ -76,7 +76,7 @@ void DriverFiscalHasar::run()
         PackageHasar *pkg = queue.first();
         m_serialPort->write(pkg->fiscalPackage());
 
-        QByteArray ret = readData(pkg->cmd());
+        QByteArray ret = readData(pkg->cmd(), 0);
         if(ret == "-1") {
             queue.clear();
             m_serialPort->readAll();
@@ -218,7 +218,7 @@ bool DriverFiscalHasar::getStatus(const QByteArray &data)
     return tmp == QByteArray("0000");
 }
 
-QByteArray DriverFiscalHasar::readData(const int pkg_cmd)
+QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secuence)
 {
     bool ok = false;
     int count_tw = 0;

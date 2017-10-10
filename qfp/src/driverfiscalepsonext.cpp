@@ -86,7 +86,7 @@ void DriverFiscalEpsonExt::run()
         PackageEpsonExt *pkg = queue.first();
         m_serialPort->write(pkg->fiscalPackage());
 
-        QByteArray ret = readData(pkg->cmd());
+        QByteArray ret = readData(pkg->cmd(), 0);
         if(!ret.isEmpty()) {
             if(ret.at(0) == PackageFiscal::NAK && m_nak_count <= 3) { // ! NAK
                 m_nak_count++;
@@ -196,7 +196,7 @@ bool DriverFiscalEpsonExt::getStatus(const QByteArray &data)
     return tmp == QByteArray("0000");
 }
 
-QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd)
+QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &secuence)
 {
     bool ok = false;
     int count_tw = 0;
@@ -858,6 +858,7 @@ void DriverFiscalEpsonExt::generalDiscount(const QString &description, const qre
     }
 
     d.append(PackageFiscal::FS);
+    d.append("CodigoInterno4567891123456789012345678901234567891");
     d.append(PackageFiscal::FS);
 
     p->setData(d);

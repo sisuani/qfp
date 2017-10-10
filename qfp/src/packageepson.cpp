@@ -53,6 +53,11 @@ int PackageEpson::id()
     return m_id;
 }
 
+QByteArray PackageEpson::secuence()
+{
+    return QString::number(m_last_secuence, 16).toUtf8();
+}
+
 void PackageEpson::setCmd(int cmd)
 {
     m_cmd = cmd;

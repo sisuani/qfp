@@ -72,7 +72,7 @@ public:
     void setModel(const FiscalPrinter::Model model);
 
 
-    virtual QByteArray readData(const int pkg_cmd);
+    virtual QByteArray readData(const int pkg_cmd, const QByteArray &secuence);
     virtual int getReceiptNumber(const QByteArray &data);
     virtual bool getStatus(const QByteArray &data);
     virtual bool verifyResponse(const QByteArray &bytes, const int pkg_cmd);

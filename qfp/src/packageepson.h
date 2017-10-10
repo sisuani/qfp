@@ -48,6 +48,7 @@ public:
     int id();
     void setCmd(int cmd);
     int cmd();
+    QByteArray secuence();
     void setData(const QString &data);
     QString &data();
     QByteArray &fiscalPackage();

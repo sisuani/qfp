@@ -50,10 +50,6 @@ int PackageEpson::m_secuence = 0x20;
 DriverFiscalEpson::DriverFiscalEpson(QObject *parent, SerialPort *m_serialPort)
     : QThread(parent), DriverFiscal(parent, m_serialPort)
 {
-    QString path = QDir::homePath() + QDir::separator() + ".config" + QDir::separator() + "Subway" + QDir::separator();
-#if LOGGER
-    Logger::instance()->init(path + "fiscal.txt");
-#endif
     m_nak_count = 0;
     m_error = false;
     m_isinvoice = false;
@@ -85,7 +81,7 @@ void DriverFiscalEpson::run()
         PackageEpson *pkg = queue.first();
         m_serialPort->write(pkg->fiscalPackage());
 
-        QByteArray ret = readData(pkg->cmd());
+        QByteArray ret = readData(pkg->cmd(), pkg->secuence());
         if(!ret.isEmpty()) {
             if(ret.at(0) == PackageFiscal::NAK && m_nak_count <= 3) { // ! NAK
                 m_nak_count++;
@@ -138,7 +134,7 @@ bool DriverFiscalEpson::getStatus(const QByteArray &data)
     return tmp == QByteArray("0000");
 }
 
-QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
+QByteArray DriverFiscalEpson::readData(const int pkg_cmd, const QByteArray &secuence)
 {
     bool ok = false;
     int count_tw = 0;
@@ -168,13 +164,25 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
             bytes += PackageFiscal::STX;
 
             bufferBytes = m_serialPort->read(1);
+            qDebug() << "LEIDO: " <<  secuence;
+            bool has_cmd = false;
             while(bufferBytes.at(0) != PackageFiscal::ETX) {
                 count_tw++;
                 if(bufferBytes.isEmpty()) {
                     SleeperThread::msleep(100);
                 }
 
-                bytes += bufferBytes;
+                if (!has_cmd) {
+                    if (!bufferBytes.isEmpty()) {
+                        if (QString::number(bufferBytes.at(0), 16).toUtf8() == secuence) {
+                            has_cmd = true;
+                            bytes += bufferBytes;
+                        }
+                    }
+                } else {
+                    bytes += bufferBytes;
+                }
+
                 bufferBytes = m_serialPort->read(1);
 
                 if(count_tw >= MAX_TW)
@@ -202,6 +210,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
             ok = true;
             break;
         } else {
+            qDebug() << "PASAMOS POR ACA";
             bytes += bufferBytes;
         }
         count_tw++;
@@ -210,6 +219,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd)
 
     log << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
 
+    bytes = bytes.remove(0, bytes.lastIndexOf(PackageFiscal::STX));
     ok = verifyResponse(bytes, pkg_cmd);
 
     if(!ok) {

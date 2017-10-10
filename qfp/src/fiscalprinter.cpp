@@ -36,13 +36,17 @@
 #include "driverfiscalepson.h"
 #include "driverfiscalepsonext.h"
 #include "driverfiscalhasar.h"
+#include "logger.h"
 
+#include <QCoreApplication>
 #include <QDebug>
 
 FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
         FiscalPrinter::Model model, const QString &port_type, unsigned int port, int m_TIME_WAIT)
     : QObject(parent)
 {
+    Logger::instance()->init(QCoreApplication::applicationDirPath() + "/fiscal_test.txt");
+    log << "START";
     m_serialPort = new SerialPort(port_type, port);
     qDebug() << "serialport - " << port_type << port << m_serialPort->isOpen();
     m_model = model;

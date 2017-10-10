@@ -43,7 +43,7 @@
 #include "serialport.h"
 #include "packagefiscal.h"
 
-#define LOGGER 0
+#define LOGGER 1
 
 #define TIME_WAIT 350
 #define MAX_TW 150
@@ -66,7 +66,7 @@ public:
         CMD_OPENDRAWER              = 0x7b
     };
 
-    virtual QByteArray readData(const int pkg_cmd) = 0;
+    virtual QByteArray readData(const int pkg_cmd, const QByteArray &secuence) = 0;
     virtual int getReceiptNumber(const QByteArray &data) = 0;
     virtual bool verifyResponse(const QByteArray &bytes, const int pkg_cmd) = 0;
     virtual bool checkSum(const QString &data) = 0;
