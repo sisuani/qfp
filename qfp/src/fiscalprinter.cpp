@@ -36,6 +36,7 @@
 #include "driverfiscalepson.h"
 #include "driverfiscalepsonext.h"
 #include "driverfiscalhasar.h"
+#include "driverfiscalhasar2g.h"
 #include "logger.h"
 
 #include <QCoreApplication>
@@ -47,8 +48,16 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
 {
     Logger::instance()->init(QCoreApplication::applicationDirPath() + "/fiscal_test.txt");
     log << "START";
-    m_serialPort = new SerialPort(port_type, port);
-    qDebug() << "serialport - " << port_type << port << m_serialPort->isOpen();
+    if (model == FiscalPrinter::Hasar1000F) {
+        m_serialPort = 0;
+        m_networkPort = new NetworkPort(port_type, port);
+        qDebug() << "networkport - " << port_type << port;
+    } else {
+        m_networkPort = 0;
+        m_serialPort = new SerialPort(port_type, port);
+        qDebug() << "serialport - " << port_type << port << m_serialPort->isOpen();
+    }
+
     m_model = model;
     if(model == EpsonTMU220 || model == EpsonTM900 || model == Hasar615F || model == Hasar715F)
         m_supportTicket = true;
@@ -74,23 +83,35 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
                     this, SIGNAL(fiscalStatus(int)));
         }
     } else {
-        m_driverFiscal = new DriverFiscalHasar(this, m_serialPort, m_TIME_WAIT);
-        dynamic_cast<DriverFiscalHasar *>(m_driverFiscal)->setModel(model);
-        connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
-                this, SIGNAL(fiscalReceiptNumber(int, int, int)));
-        connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalStatus(int)),
-                this, SIGNAL(fiscalStatus(int)));
+        if (model == FiscalPrinter::Hasar1000F) {
+            m_driverFiscal = new DriverFiscalHasar2G(this, m_networkPort);
+            dynamic_cast<DriverFiscalHasar2G *>(m_driverFiscal)->setModel(model);
+            connect(dynamic_cast<DriverFiscalHasar2G *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
+                    this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+            connect(dynamic_cast<DriverFiscalHasar2G *>(m_driverFiscal), SIGNAL(fiscalStatus(int)),
+                    this, SIGNAL(fiscalStatus(int)));
+        } else {
+            m_driverFiscal = new DriverFiscalHasar(this, m_serialPort, m_TIME_WAIT);
+            dynamic_cast<DriverFiscalHasar *>(m_driverFiscal)->setModel(model);
+            connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalReceiptNumber(int, int, int)),
+                    this, SIGNAL(fiscalReceiptNumber(int, int, int)));
+            connect(dynamic_cast<DriverFiscalHasar *>(m_driverFiscal), SIGNAL(fiscalStatus(int)),
+                    this, SIGNAL(fiscalStatus(int)));
+        }
     }
 }
 
 FiscalPrinter::~FiscalPrinter()
 {
     m_driverFiscal->finish();
-    if(m_serialPort) {
+    if (m_serialPort) {
         if(m_serialPort->isOpen())
             m_serialPort->close();
         delete m_serialPort;
     }
+
+    if (m_networkPort)
+        delete m_networkPort;
 }
 
 int FiscalPrinter::model()
@@ -105,6 +126,9 @@ bool FiscalPrinter::supportTicket()
 
 bool FiscalPrinter::isOpen()
 {
+    if (model() == FiscalPrinter::Hasar1000F)
+        return true;
+
     return m_serialPort->isOpen();
 }
 

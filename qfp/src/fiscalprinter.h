@@ -36,6 +36,7 @@
 #define FISCALPRINTER_H
 
 #include "serialport.h"
+#include "networkport.h"
 #include "driverfiscal.h"
 
 class FiscalPrinter : public QObject
@@ -56,6 +57,7 @@ public:
         Hasar330F,
         Hasar615F,
         Hasar715F,
+        Hasar1000F,
     };
     Q_DECLARE_FLAGS(Models, Model)
 
@@ -127,6 +129,7 @@ signals:
 
 private:
     SerialPort *m_serialPort;
+    NetworkPort *m_networkPort;
     DriverFiscal *m_driverFiscal;
     bool m_supportTicket;
     int m_model;

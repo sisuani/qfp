@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 2.6.0)
 find_package(Qt4 COMPONENTS QtCore REQUIRED)
 include(${QT_USE_FILE})
 
+
 set(3partys_SRCS
     qextserialport/src/qextserialenumerator.cpp
     qextserialport/src/qextserialport.cpp
@@ -24,7 +25,7 @@ if(WIN32)
     )
 endif(WIN32)
 
-
+add_subdirectory(qjson)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 include_directories(qextserialport/src)
 include_directories(logger)
