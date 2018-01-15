@@ -35,23 +35,51 @@
 #include "driverfiscalhasar2g.h"
 #include "packagefiscal.h"
 
-#include <QCoreApplication>
 #include <QDateTime>
+#include <QEventLoop>
 
 
 DriverFiscalHasar2G::DriverFiscalHasar2G(QObject *parent, NetworkPort *m_networkPort, int m_TIME_WAIT)
     : QThread(parent), DriverFiscal(parent, m_networkPort, m_TIME_WAIT)
 {
-    m_nak_count = 0;
     m_error = false;
     errorHandler_count = 0;
     m_continue = true;
+    connect(this, SIGNAL(sendData(const QVariantMap &)),
+            m_networkPort, SLOT(post(const QVariantMap &)));
 }
 
 void DriverFiscalHasar2G::setModel(const FiscalPrinter::Model model)
 {
-    qDebug() << "MODEL: " << model << "ORIG: " << FiscalPrinter::Hasar615F;
+    qDebug() << "MODEL: " << model << "ORIG: " << FiscalPrinter::Hasar1000F;
     m_model = model;
+}
+
+void DriverFiscalHasar2G::run()
+{
+    while(!queue.empty() && m_continue) {
+        QVariantMap pkg = queue.first();
+        QVariantMap result;
+        sendData(pkg);
+
+        QEventLoop loop;
+        connect(m_networkPort, SIGNAL(finished()), &loop, SLOT(quit()));
+        loop.exec();
+
+        if (m_networkPort->lastError() != NetworkPort::NP_NO_ERROR) {
+            qDebug() << "Error: " << m_networkPort->lastError();
+            continue;
+        }
+
+        if (!verifyPackage(pkg, m_networkPort->lastReply())) {
+            queue.clear();
+            cancel();
+            continue;
+        }
+
+        queue.pop_front();
+    }
+
 }
 
 void DriverFiscalHasar2G::finish()
@@ -66,52 +94,6 @@ void DriverFiscalHasar2G::finish()
     }
 }
 
-void DriverFiscalHasar2G::run()
-{
-    while(!queue.empty() && m_continue) {
-        QVariantMap pkg = queue.first();
-        QVariantMap result;
-
-        /*
-
-        QByteArray ret = readData(pkg->cmd(), 0);
-        if(ret == "-1") {
-            queue.clear();
-            m_serialPort->readAll();
-
-            if(errorHandler_count > 4)
-                return;
-
-            errorHandler_count++;
-
-            errorHandler();
-
-        } else if(!ret.isEmpty()) {
-            if(ret.at(0) == PackageFiscal::NAK && m_nak_count <= 3) { // ! NAK
-                m_nak_count++;
-                SleeperThread::msleep(100);
-                continue;
-            }
-
-            m_nak_count = 0;
-            errorHandler_count = 0;
-
-
-            if(pkg->cmd() == CMD_CLOSEFISCALRECEIPT || pkg->cmd() == CMD_CLOSEDNFH) {
-                emit fiscalReceiptNumber(pkg->id(), getReceiptNumber(ret), pkg->ftype());
-            }
-
-            queue.pop_front();
-            delete pkg;
-
-        } else {
-
-            queue.clear();
-            //m_nak_count++;
-        }
-        */
-    }
-}
 
 void DriverFiscalHasar2G::errorHandler()
 {
@@ -144,170 +126,43 @@ int DriverFiscalHasar2G::getReceiptNumber(const QByteArray &data)
     */
 }
 
-bool DriverFiscalHasar2G::getStatus(const QByteArray &data)
+bool DriverFiscalHasar2G::getStatus(const QVariantMap &status)
 {
-    /*
-    QByteArray tmp = data;
-    tmp.remove(0, 11);
-    tmp.remove(5, tmp.size());
+    if (!status.size())
+        return false;
 
-    return tmp == QByteArray("0000");
-    */
+
+    if (status["Impresora"].toList().size()) {
+        if (status["Impresora"].toList().contains("TapaAbierta"))
+            return false;
+    }
+
+    if (status["Fiscal"].toList().size()) {
+        if (status["Fiscal"].toList().contains("ErrorEstado"))
+            return false;
+    }
+
+    //qDebug() << status["Fiscal"].toMap().size();
+    return true;
 }
 
-QByteArray DriverFiscalHasar2G::readData(const int pkg_cmd, const QByteArray &secuence)
+bool DriverFiscalHasar2G::verifyPackage(const QVariantMap &pkg, const QVariantMap &reply)
 {
-    /*
-    bool ok = false;
-    int count_tw = 0;
-    QByteArray bytes;
-
-    do {
-        if(m_serialPort->bytesAvailable() <= 0 && m_continue) {
-            qDebug() << "NB tw";
-            SleeperThread::msleep(100);
-        }
-
-        if(!m_continue)
-            return "";
-
-        QByteArray bufferBytes = m_serialPort->read(1);
-        if(bufferBytes.at(0) == PackageFiscal::ACK) {
-            //qDebug() << QString("ACK PRINTER: %1 ").arg(bufferBytes.toHex());
-            SleeperThread::msleep(100);
-        } else if(bufferBytes.at(0) == PackageFiscal::DC1 || bufferBytes.at(0) == PackageFiscal::DC2
-                || bufferBytes.at(0) == PackageFiscal::DC3 || bufferBytes.at(0) == PackageFiscal::DC4
-                || bufferBytes.at(0) == PackageFiscal::ACK) {
-            qDebug() << "DC tw: " << bufferBytes.toHex();
-            SleeperThread::msleep(100);
-            count_tw -= 30;
-            continue;
-        } else if(bufferBytes.at(0) == PackageFiscal::NAK) {
-            qDebug() << QString("NAK");
-            return bufferBytes;
-        } else if(bufferBytes.at(0) == PackageFiscal::STX) {
-            bytes += PackageFiscal::STX;
-
-            bufferBytes = m_serialPort->read(1);
-            while(bufferBytes.at(0) != PackageFiscal::ETX) {
-                count_tw++;
-                if(bufferBytes.isEmpty()) {
-                    SleeperThread::msleep(100);
-                }
-
-                bytes += bufferBytes;
-                bufferBytes = m_serialPort->read(1);
-
-                if(count_tw >= MAX_TW)
-                    break;
-            }
-
-            bytes += PackageFiscal::ETX;
-
-            QByteArray checkSumArray;
-            int checksumCount = 0;
-            while(checksumCount != 4) {
-                checkSumArray = m_serialPort->read(1);
-                count_tw++;
-                if(checkSumArray.isEmpty()) {
-                    SleeperThread::msleep(100);
-                } else {
-                    checksumCount++;
-                    bytes += checkSumArray;
-                }
-
-                if(count_tw >= MAX_TW)
-                    break;
-            }
-
-            ok = true;
-            break;
-        } else {
-            bytes += bufferBytes;
-        }
-        count_tw++;
-
-    } while(ok != true && count_tw <= MAX_TW && m_continue);
-
-    qDebug() << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
-
-    ok = verifyResponse(bytes, pkg_cmd);
-
-    if(!ok) {
-        qDebug() << QString("ERRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOORRRRRRRRRRRR READ: %1").arg(bytes.toHex().data());
-        if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            m_serialPort->readAll();
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
-        return "-1";
-    } else {
-        qDebug() << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
-        emit fiscalStatus(FiscalPrinter::Ok);
-    }
-
-    return bytes;
-    */
-}
-
-bool DriverFiscalHasar2G::verifyResponse(const QByteArray &bytes, const int pkg_cmd)
-{
-    /*
-    if(bytes.at(0) != PackageFiscal::STX) {
-        qDebug() << QString("NO STX %1").arg(bytes.toHex().data());
-        if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
+    if (!pkg.keys().size() || !reply.keys().size()) {
         return false;
     }
 
-    if(QChar(bytes.at(2)).unicode() != pkg_cmd) {
-        qDebug() << QString("ERR - diff cmds: %1 %2").arg(QChar(bytes.at(2)).unicode()).arg(pkg_cmd);
-        if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
+    const QString cmd = pkg.keys()[0];
 
+    if (cmd != reply.keys()[0])
         return false;
-    }
 
-    m_error = false;
-
-    if(bytes.at(3) != PackageFiscal::FS) {
-        qDebug() << QString("Error: diff FS");
-
-        if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
+    if (!getStatus(reply[cmd].toMap()["Estado"].toMap()))
         return false;
-    }
 
-    if(bytes.at(bytes.size() - 5) != PackageFiscal::ETX) {
-        qDebug() << QString("Error: ETX");
 
-        if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
-        return false;
-    }
-
+    qDebug() << "OK";
     return true;
-
-    if(!checkSum(bytes)) {
-        qDebug() << QString("Error: checksum");
-
-        if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
-        return false;
-    }
-
-    return true;
-    */
 }
 
 bool DriverFiscalHasar2G::checkSum(const QString &data)
@@ -331,13 +186,14 @@ bool DriverFiscalHasar2G::checkSum(const QString &data)
 
 void DriverFiscalHasar2G::statusRequest()
 {
-    /*
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_STATUS);
+    QVariantMap d;
+    QVariantMap state;
 
-    queue.append(p);
+    state["MensajeCF"];
+    d["ConsultarEstado"] = state;
+
+    queue.append(d);
     start();
-    */
 }
 
 void DriverFiscalHasar2G::dailyClose(const char type)
@@ -349,13 +205,7 @@ void DriverFiscalHasar2G::dailyClose(const char type)
     d["CerrarJornadaFiscal"] = report;
 
     queue.append(d);
-
-    QVariantMap pkg = queue.first();
-    QVariantMap result;
-    m_networkPort->post(pkg, &result);
-    queue.pop_front();
-
-    //start();
+    start();
 }
 
 void DriverFiscalHasar2G::dailyCloseByDate(const QDate &from, const QDate &to)
@@ -439,19 +289,32 @@ void DriverFiscalHasar2G::setCustomerData(const QString &name, const QString &cu
 
 void DriverFiscalHasar2G::openFiscalReceipt(const char type)
 {
-    /*
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_OPENFISCALRECEIPT);
+    QVariantMap d;
+    QVariantMap openReceipt;
 
-    QByteArray d;
-    d.append(type);
-    d.append(PackageFiscal::FS);
-    d.append('T');
-    p->setData(d);
+    switch (type) {
+        case 'B':
+            openReceipt["CodigoComprobante"] = "TiqueFacturaB";
+            break;
+        case 'A':
+            openReceipt["CodigoComprobante"] = "TiqueFacturaA";
+            break;
+        case 'M':
+            openReceipt["CodigoComprobante"] = "TiqueNotaCreditoA";
+            break;
+            // XXX
+        case '-':
+            openReceipt["CodigoComprobante"] = "TiqueNotaCreditoB";
+            break;
+        case 'T':
+            openReceipt["CodigoComprobante"] = "Tique";
+            break;
+    }
 
-    queue.append(p);
+    d["AbrirDocumento"] = openReceipt;
+
+    queue.append(d);
     start();
-    */
 }
 
 void DriverFiscalHasar2G::printFiscalText(const QString &text)
@@ -779,17 +642,12 @@ void DriverFiscalHasar2G::closeDNFH(const int id, const char f_type, const int c
 
 void DriverFiscalHasar2G::cancel()
 {
-    /*
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_CANCEL);
+    QVariantMap d;
 
-    queue.append(p);
+    d["Cancelar"] = QVariantMap();
+
+    queue.append(d);
     start();
-    */
-}
-
-void DriverFiscalHasar2G::ack()
-{
 }
 
 void DriverFiscalHasar2G::setDateTime(const QDateTime &dateTime)
@@ -907,3 +765,25 @@ void DriverFiscalHasar2G::downloadFinalize()
 void DriverFiscalHasar2G::downloadDelete(const int to)
 {
 }
+
+bool DriverFiscalHasar2G::getStatus(const QByteArray &data)
+{
+    Q_UNUSED(data);
+}
+
+QByteArray DriverFiscalHasar2G::readData(const int pkg_cmd, const QByteArray &secuence)
+{
+    Q_UNUSED(pkg_cmd);
+    Q_UNUSED(secuence);
+}
+
+bool DriverFiscalHasar2G::verifyResponse(const QByteArray &bytes, const int pkg_cmd)
+{
+    Q_UNUSED(bytes);
+    Q_UNUSED(pkg_cmd);
+}
+
+void DriverFiscalHasar2G::ack()
+{
+}
+

@@ -35,27 +35,41 @@
 #ifndef NETWORKPORT_H
 #define NETWORKPORT_H
 
-#include <QObject>
+#include <QThread>
 #include <QVariantMap>
+#include <QUrl>
 #include <QtNetwork/QNetworkAccessManager>
 
-class NetworkPort : public QObject
+class NetworkPort : public QThread
 {
+    Q_OBJECT
 
 public:
-    explicit NetworkPort(const QString &host = "127.0.0.1", unsigned int port = 80);
+    NetworkPort(QObject *parent, const QString &host, const int port);
+    ~NetworkPort();
 
-    bool post(const QVariantMap &body, QVariantMap *result);
+    enum {
+        NP_NO_ERROR,
+        NP_ERROR_STATUS,
+        NP_ERROR_PARSE
+    };
 
-    QVariantMap lastError() const;
-    QString lastErrorMessage() const;
+    bool open();
+
+    QVariantMap lastReply() const;
+    const int lastError() const;
+
+signals:
+    void finished();
+
+public slots:
+    void post(const QVariantMap &body);
 
 private:
-    QString host;
-    unsigned int port;
     QNetworkAccessManager *networkManager;
-    bool waitAndparseData(QNetworkReply *reply, QVariantMap *result);
-    QVariantMap m_lastError;
+    QUrl url;
+    QVariantMap m_lastReply;
+    int m_lastError;
 };
 
 #endif // NETWORKPORT_H

@@ -13,7 +13,7 @@ int main(int argc, char *argv[])
     }
 
     CommandLineThread cmdt(0, argv[1], argv[2], argv[3], argv[4]);
-    //cmdt.start();
+    cmdt.start();
 
 
     return app.exec();

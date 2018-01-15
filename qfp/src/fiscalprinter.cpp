@@ -50,7 +50,7 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
     log << "START";
     if (model == FiscalPrinter::Hasar1000F) {
         m_serialPort = 0;
-        m_networkPort = new NetworkPort(port_type, port);
+        m_networkPort = new NetworkPort(this, port_type, port);
         qDebug() << "networkport - " << port_type << port;
     } else {
         m_networkPort = 0;

@@ -48,27 +48,6 @@ class DriverFiscalHasar2G : public QThread, virtual public DriverFiscal
 public:
     explicit DriverFiscalHasar2G(QObject *parent = 0, NetworkPort *m_networkPort= 0, int m_TIME_WAIT = 300);
 
-    enum {
-        CMD_OPENFISCALRECEIPT       = 0x40,
-        CMD_PRINTFISCALTEXT         = 0x41,
-        CMD_PRINTLINEITEM           = 0x42,
-        //CMD_GENERALDISCOUNT       = 0x,
-        CMD_SUBTOTAL                = 0x43,
-        CMD_TOTALTENDER             = 0x44,
-        CMD_CLOSEFISCALRECEIPT      = 0x45,
-        CMD_PERCEPTIONS             = 0x60,
-        CMD_SETCUSTOMERDATA         = 0x62,
-        CMD_GENERALDISCOUNT         = 0x54,
-        CMD_SETHEADERTRAILER        = 0x5d,
-        CMD_SETDATETIME             = 0x58,
-        CMD_OPENDNFH                = 0x80,
-        CMD_PRINTEMBARKITEM         = 0x82,
-        CMD_CLOSEDNFH               = 0x81,
-        CMD_EMBARKNUMBER            = 0x93,
-        CMD_CANCEL                  = 0x98,
-        CMD_RECEIPTTEXT             = 0x97
-    };
-
     void setModel(const FiscalPrinter::Model model);
 
     virtual QByteArray readData(const int pkg_cmd, const QByteArray &secuence);
@@ -118,21 +97,24 @@ public:
     virtual void downloadFinalize();
     virtual void downloadDelete(const int to);
 
+protected:
+    void run();
+
 signals:
     void fiscalReceiptNumber(int id, int number, int type); // type == 0 Factura, == 1 NC
     void fiscalStatus(int state);
     void fiscalData(int cmd, QVariant data);
-
-protected:
-    void run();
+    void sendData(const QVariantMap &);
 
 private:
+    bool verifyPackage(const QVariantMap &pkg, const QVariantMap &reply);
+    bool getStatus(const QVariantMap &status);
+
     void errorHandler();
     bool m_error;
     QVector<QVariantMap> queue;
     FiscalPrinter::Model m_model;
     int errorHandler_count;
-    int m_nak_count;
 };
 
 #endif // DRIVERFISCALHASAR2G_H

@@ -39,44 +39,61 @@
 #include <QEventLoop>
 #include <QJson/Parser>
 #include <QJson/Serializer>
+#include <QTimer>
 #include <QDebug>
 
-NetworkPort::NetworkPort(const QString &host, unsigned int port)
-    : host(host),
-      port(port)
+NetworkPort::NetworkPort(QObject *parent, const QString &host, const int port)
+    : QThread(0)
 {
     networkManager = new QNetworkAccessManager(this);
-}
-
-bool NetworkPort::post(const QVariantMap &body, QVariantMap *result)
-{
-    QUrl url;
     url.setUrl(host);
     url.setPort(port);
+}
+
+NetworkPort::~NetworkPort()
+{
+}
+
+QVariantMap NetworkPort::lastReply() const
+{
+    return m_lastReply;
+}
+
+const int NetworkPort::lastError() const
+{
+    return m_lastError;
+}
+
+void NetworkPort::post(const QVariantMap &body)
+{
     QNetworkRequest request(url);
     request.setRawHeader("Content-type", "application/json");
 
     QJson::Serializer serializer;
-    qDebug() << "0.1";
     QNetworkReply *reply = networkManager->post(request, serializer.serialize(body));
-    qDebug() << "1";
+    m_lastError = NP_NO_ERROR;
 
-    return waitAndparseData(reply, result);
-}
-
-bool NetworkPort::waitAndparseData(QNetworkReply *reply, QVariantMap *result)
-{
+    QTimer timer;
     QEventLoop loop;
     connect(reply, SIGNAL(finished()), &loop, SLOT(quit()));
+    QTimer::connect(&timer, SIGNAL(timeout()), &loop, SLOT(quit()));
+    timer.start(10 * 1000);
     loop.exec();
 
     const int statusCode = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    QByteArray json = reply->readAll();
-    qDebug() << "JSON: " << json;
-    reply->deleteLater();
+    if (statusCode == 200) {
+        QByteArray json = reply->readAll();
+        reply->deleteLater();
 
-    QJson::Parser parser;
-    bool parseOk = true;
-    *result = parser.parse(json, &parseOk).toMap();
-    return parseOk;
+        QJson::Parser parser;
+        bool parseOk = true;
+        m_lastReply = parser.parse(json, &parseOk).toMap();
+        qDebug() << json;
+        if (!parseOk)
+            m_lastError = NP_ERROR_PARSE;
+    } else {
+        m_lastError = NP_ERROR_STATUS;
+    }
+
+    emit finished();
 }

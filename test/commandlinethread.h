@@ -9,12 +9,12 @@
 #include "errorparser.h"
 #include "../qfp/src/fiscalprinter.h"
 
-class CommandLineThread : public QObject
+class CommandLineThread : public QThread
 {
     Q_OBJECT
 
 public:
-    CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="", const QString &shost= "", const QString &sport="") : QObject(parent) {
+    CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="", const QString &shost= "", const QString &sport="") : QThread(parent) {
         FiscalPrinter::Brand brand;
         FiscalPrinter::Model model;
         unsigned int port = sport.toInt();
@@ -50,8 +50,11 @@ public:
         ep = new ErrorParser(0, fp);
         connect(fp, SIGNAL(fiscalStatus(int)), ep, SLOT(fiscalStatus(int)));
         connect(fp, SIGNAL(fiscalData(int, QVariant)), this, SLOT(fiscalData(int, QVariant)));
-        //fp->statusRequest();
+    //    fp->statusRequest();
+        fp->openFiscalReceipt('T');
+    }
 
+        void run(void) {
         while (true) {
             int c = 0;
             while((c = getchar())) {
