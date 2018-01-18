@@ -114,7 +114,7 @@ private:
     bool m_error;
     QVector<QVariantMap> queue;
     FiscalPrinter::Model m_model;
-    int errorHandler_count;
+    int cancel_count;
 };
 
 #endif // DRIVERFISCALHASAR2G_H

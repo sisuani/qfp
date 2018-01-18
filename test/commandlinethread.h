@@ -51,7 +51,7 @@ public:
         connect(fp, SIGNAL(fiscalStatus(int)), ep, SLOT(fiscalStatus(int)));
         connect(fp, SIGNAL(fiscalData(int, QVariant)), this, SLOT(fiscalData(int, QVariant)));
     //    fp->statusRequest();
-        fp->openFiscalReceipt('T');
+        //fp->openFiscalReceipt('T');
     }
 
         void run(void) {
@@ -69,10 +69,10 @@ public:
                         fp->dailyClose('Z');
                         break;
                     case 'd':
-                        fp->dailyCloseByDate(QDate(2016, 2, 1), QDate(2016, 2, 8));
+                        fp->dailyCloseByDate(QDate(2018, 1, 1), QDate(2018, 1, 15));
                         break;
                     case 'n':
-                        fp->dailyCloseByNumber(1, 12);
+                        fp->dailyCloseByNumber(1, 2);
                         break;
                     case 'f':
                         fp->setHeaderTrailer("", "test prueba si");

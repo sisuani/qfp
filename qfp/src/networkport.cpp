@@ -70,6 +70,7 @@ void NetworkPort::post(const QVariantMap &body)
     request.setRawHeader("Content-type", "application/json");
 
     QJson::Serializer serializer;
+    //qDebug() << serializer.serialize(body);
     QNetworkReply *reply = networkManager->post(request, serializer.serialize(body));
     m_lastError = NP_NO_ERROR;
 
