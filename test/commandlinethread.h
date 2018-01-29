@@ -75,20 +75,20 @@ public:
                         fp->dailyCloseByNumber(1, 2);
                         break;
                     case 'f':
-                        fp->setHeaderTrailer("", "test prueba si");
+                        fp->setHeaderTrailer("ECANBEZADO", "PIE");
                         fp->openNonFiscalReceipt();
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
-                        fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
+                        //fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
                         fp->printNonFiscalText("Prueba de texto con corte automatico, maximo caracteres 39 por linea");
                         fp->closeNonFiscalReceipt();
                         fp->setHeaderTrailer("", "");
                         break;
-                    case 'A':
+                    case 'A': // FC A
                         fp->setHeaderTrailer("", "test prueba si");
                         fp->setEmbarkNumber(1, "001-00001-00000001");
                         fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
@@ -99,10 +99,10 @@ public:
                         //fp->generalDiscount("Descuento", 8, 10.5, 'm');
                         //fp->perceptions("2.5", 0.025);
                         //fp->totalTender("Contado", 1, 'T');
-                        fp->closeFiscalReceipt('T', 'A', 1 + 0.025);
+                        fp->closeFiscalReceipt('T', 'A', 7);
                         fp->setHeaderTrailer("", "");
                         break;
-                    case 'B':
+                    case 'B': // FC B
                         fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
                         fp->openFiscalReceipt('B');
                         fp->printLineItem("Producto de prueba", 1.00, 10.00, "10.50", 'M');
@@ -110,34 +110,32 @@ public:
                         fp->totalTender("Efectivo", 5, 'T');
                         fp->closeFiscalReceipt('T', 'B', 1);
                         break;
-                    case 'C':
+                    case 'C': // FC C
                         fp->openFiscalReceipt('B');
                         fp->printLineItem("Producto de prueba", 1, 1, "10.50", 'M');
                         //fp->generalDiscount("Descuento", 0.50, 'm');
                         ///fp->totalTender("Contado", 1, 'T');
                         fp->closeFiscalReceipt('T', 'B', 1);
                         break;
-                    case 'T':
+                    case 'T': // Tique
                         fp->openFiscalReceipt('T');
                         fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                         //fp->totalTender("Contado", 0.5, 'T');
                         //fp->totalTender("Tarjeta", 0.5, 'T');
                         fp->closeFiscalReceipt('0', '0', 1);
                         break;
-                    case 'M':
+                    case 'M': // ?
                         fp->openFiscalReceipt('M');
                         fp->printLineItem("Producto de prueba", 1, 1, "21.00", 'M');
                         //fp->totalTender("Contado", 1, 'T');
                         fp->closeFiscalReceipt('0', '0', 1);
                         break;
-                    case 'D':
-                        //fp->setEmbarkNumber(1, "001-99999-0000678");
+                    case 'D': // Nota Credito
                         fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
-                        fp->openDNFH('S', 'T', "123-45678-99999990");
+                        fp->openDNFH('R', 'T', "123-45678-99999990");
                         fp->printLineItem("Producto de prueba", 1, 10, "21.00", 'M');
-                        //fp->generalDiscount("Descuento", 5, 'm');
-                        //fp->perceptions("Perc. Ej", 1);
-                        //fp->totalTender("Contado", 1, 'T');
+                        fp->generalDiscount("Descuento", 5, 21.0,  'm');
+                        fp->totalTender("Contado", 1, 'T');
                         fp->closeDNFH(1, 'r', 1);
                         break;
                     case 'r':

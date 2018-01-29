@@ -38,6 +38,7 @@
 #include <QDateTime>
 #include <QEventLoop>
 
+#define CLOSEDOCCMD "CerrarDocumento"
 
 DriverFiscalHasar2G::DriverFiscalHasar2G(QObject *parent, NetworkPort *m_networkPort, int m_TIME_WAIT)
     : QThread(parent), DriverFiscal(parent, m_networkPort, m_TIME_WAIT)
@@ -62,6 +63,7 @@ void DriverFiscalHasar2G::run()
         QVariantMap result;
         sendData(pkg);
 
+
         QEventLoop loop;
         connect(m_networkPort, SIGNAL(finished()), &loop, SLOT(quit()));
         loop.exec();
@@ -71,7 +73,9 @@ void DriverFiscalHasar2G::run()
             continue;
         }
 
-        if (!verifyPackage(pkg, m_networkPort->lastReply())) {
+        const QVariantMap reply = m_networkPort->lastReply();
+
+        if (!verifyPackage(pkg, reply)) {
             queue.clear();
             cancel_count++;
             if (cancel_count < 3)
@@ -79,8 +83,13 @@ void DriverFiscalHasar2G::run()
             continue;
         }
 
-        cancel_count = 0;
+        if (reply.keys()[0].compare(CLOSEDOCCMD) == 0) {
+            emit fiscalReceiptNumber(pkg[CLOSEDOCCMD].toMap()["id"].toInt(),
+                    getReceiptNumber(reply[CLOSEDOCCMD].toMap()["NumeroComprobante"].toByteArray()),
+                    pkg[CLOSEDOCCMD].toMap()["ftype"].toInt());
+        }
 
+        cancel_count = 0;
         queue.pop_front();
     }
 
@@ -104,31 +113,12 @@ void DriverFiscalHasar2G::errorHandler()
 
 }
 
-// XXX: 1
 int DriverFiscalHasar2G::getReceiptNumber(const QByteArray &data)
 {
-    /*
-    QByteArray tmp = data;
-    tmp.remove(0, 14);
-    for(int i = 0; i < tmp.size(); i++) {
-        if(m_model == FiscalPrinter::Hasar330F) {
-            if(tmp.at(i) == PackageFiscal::FS) {
-                tmp.remove(i, tmp.size());
-                break;
-            }
-        } else {
-            if(tmp.at(i) == PackageFiscal::ETX) {
-                tmp.remove(i, tmp.size());
-                break;
-            }
-        }
-    }
-
 #if LOGGER
-    qDebug() << QString("F. Num: %1").arg(tmp.trimmed().toInt());
+    qDebug() << QString("F. Num: %1").arg(data.trimmed().toInt());
 #endif
-    return tmp.trimmed().toInt();
-    */
+    return data.trimmed().toInt();
 }
 
 bool DriverFiscalHasar2G::getStatus(const QVariantMap &status)
@@ -147,7 +137,6 @@ bool DriverFiscalHasar2G::getStatus(const QVariantMap &status)
             return false;
     }
 
-    //qDebug() << status["Fiscal"].toMap().size();
     return true;
 }
 
@@ -283,12 +272,17 @@ void DriverFiscalHasar2G::openFiscalReceipt(const char type)
         case 'M':
             openReceipt["CodigoComprobante"] = "TiqueNotaCreditoA";
             break;
-            // XXX
-        case '-':
-            openReceipt["CodigoComprobante"] = "TiqueNotaCreditoB";
-            break;
         case 'T':
             openReceipt["CodigoComprobante"] = "Tique";
+            break;
+        case 'R':
+            openReceipt["CodigoComprobante"] = "TiqueNotaCreditoA";
+            break;
+        case 'S':
+            openReceipt["CodigoComprobante"] = "TiqueNotaCreditoB";
+            break;
+        case 'r':
+            openReceipt["CodigoComprobante"] = "RemitoR";
             break;
     }
 
@@ -393,7 +387,7 @@ void DriverFiscalHasar2G::generalDiscount(const QString &description, const qrea
     discount["Descripcion"] = description;
     discount["Monto"] = QString::number(amount, 'f', 2);
     discount["ModoBaseTotal"] = "ModoPrecioTotal";
-    d["ImprimirPago"] = discount;
+    d["ImprimirDescuentoItem"] = discount;
 
     queue.append(d);
     start();
@@ -402,11 +396,27 @@ void DriverFiscalHasar2G::generalDiscount(const QString &description, const qrea
 void DriverFiscalHasar2G::closeFiscalReceipt(const char intype, const char f_type, const int id)
 {
     Q_UNUSED(intype);
-    Q_UNUSED(f_type);
 
     QVariantMap d;
     QVariantMap doc;
 
+
+    switch (f_type) {
+        case 'R':
+            doc["ftype"] = 1;
+            break;
+        case 'S':
+            doc["ftype"] = 0;
+            break;
+        case 'r':
+            doc["ftype"] = 3;
+            break;
+        default:
+            doc["ftype"] = 2;
+            break;
+    }
+
+    doc["id"] = QString::number(id);
     doc["Copias"] = "0";
     d["CerrarDocumento"] = doc;
 
@@ -464,44 +474,38 @@ void DriverFiscalHasar2G::openDrawer()
     start();
 }
 
-// XXX: 2
 void DriverFiscalHasar2G::setHeaderTrailer(const QString &header, const QString &trailer)
 {
-    // HEADER is set
-    /*
-    if(!header.isEmpty()) {
-        PackageHasar *p = new PackageHasar;
-        p->setCmd(CMD_SETHEADERTRAILER);
+    QVariantMap d;
+    QVariantMap zona;
 
-        QByteArray d;
-        d.append("1");
-        d.append(PackageFiscal::FS);
-        d.append(header.left(120));
-        p->setData(d);
-
-        queue.append(p);
-        start();
-    }*/
-
-    /*
-
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_SETHEADERTRAILER);
-    QByteArray d;
-    d.append("12");
-    d.append(PackageFiscal::FS);
-
-    if(!trailer.isEmpty()) {
-        d.append(trailer.left(120));
+    if (!header.isEmpty()) {
+        zona["NumeroLinea"] = "1";
+        zona["Descripcion"] = header;
     } else {
-        d.append(0x7f);
+        zona["NumeroLinea"] = "0";
     }
 
-    p->setData(d);
-
-    queue.append(p);
+    zona["Estacion"] = "EstacionPorDefecto";
+    zona["IdentificadorZona"] = "Zona1Encabezado";
+    d["ConfigurarZona"] = zona;
+    queue.append(d);
     start();
-    */
+
+    if (!trailer.isEmpty()) {
+        zona["NumeroLinea"] = "1";
+        zona["Descripcion"] = trailer;
+    } else {
+        zona["NumeroLinea"] = "0";
+    }
+
+    zona["Estacion"] = "EstacionPorDefecto";
+    zona["IdentificadorZona"] = "Zona1Cola";
+    d["ConfigurarZona"] = zona;
+
+    queue.append(d);
+    start();
+
 }
 
 void DriverFiscalHasar2G::setEmbarkNumber(const int doc_num, const QString &description)
@@ -519,48 +523,18 @@ void DriverFiscalHasar2G::setEmbarkNumber(const int doc_num, const QString &desc
     start();
 }
 
-// XXX: 3
 void DriverFiscalHasar2G::openDNFH(const char type, const char fix_value, const QString &doc_num)
 {
+    Q_UNUSED(fix_value);
+    Q_UNUSED(doc_num);
+    openFiscalReceipt(type);
 
-    /*
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_OPENDNFH);
-
-    QByteArray d;
-    d.append(type);
-    d.append(PackageFiscal::FS);
-    d.append(fix_value);
-
-    if(m_model == FiscalPrinter::Hasar330F || m_model == FiscalPrinter::Hasar320F) {
-        d.append(PackageFiscal::FS);
-        d.append(doc_num);
-    }
-    p->setData(d);
-
-    queue.append(p);
-    start();
-    */
 }
 
-// XXX: 4
 void DriverFiscalHasar2G::closeDNFH(const int id, const char f_type, const int copies)
 {
-    /*
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(CMD_CLOSEDNFH);
-
-    if(m_model == FiscalPrinter::Hasar330F || m_model == FiscalPrinter::Hasar320F) {
-        QByteArray d;
-        d.append(QString::number(copies));
-        p->setData(d);
-    }
-    p->setFtype(f_type == 'R' ? 1 : 2);
-    p->setId(id);
-
-    queue.append(p);
-    start();
-    */
+    Q_UNUSED(copies);
+    closeFiscalReceipt(0, f_type, id);
 }
 
 void DriverFiscalHasar2G::cancel()

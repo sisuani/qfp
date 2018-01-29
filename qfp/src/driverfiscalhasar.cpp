@@ -620,7 +620,6 @@ void DriverFiscalHasar::generalDiscount(const QString &description, const qreal 
 void DriverFiscalHasar::closeFiscalReceipt(const char intype, const char f_type, const int id)
 {
     Q_UNUSED(intype);
-    Q_UNUSED(f_type);
 
     PackageHasar *p = new PackageHasar;
     p->setCmd(CMD_CLOSEFISCALRECEIPT);
