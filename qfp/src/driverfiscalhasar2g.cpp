@@ -69,6 +69,7 @@ void DriverFiscalHasar2G::run()
         loop.exec();
 
         if (m_networkPort->lastError() != NetworkPort::NP_NO_ERROR) {
+            emit fiscalStatus(FiscalPrinter::Error);
             qDebug() << "Error: " << m_networkPort->lastError();
             continue;
         }
@@ -82,6 +83,8 @@ void DriverFiscalHasar2G::run()
                 cancel();
             continue;
         }
+
+        emit fiscalStatus(FiscalPrinter::Ok);
 
         if (reply.keys()[0].compare(CLOSEDOCCMD) == 0) {
             emit fiscalReceiptNumber(pkg[CLOSEDOCCMD].toMap()["id"].toInt(),
@@ -143,17 +146,21 @@ bool DriverFiscalHasar2G::getStatus(const QVariantMap &status)
 bool DriverFiscalHasar2G::verifyPackage(const QVariantMap &pkg, const QVariantMap &reply)
 {
     if (!pkg.keys().size() || !reply.keys().size()) {
+        emit fiscalStatus(FiscalPrinter::Error);
         return false;
     }
 
     const QString cmd = pkg.keys()[0];
 
-    if (cmd != reply.keys()[0])
+    if (cmd != reply.keys()[0]) {
+        emit fiscalStatus(FiscalPrinter::Error);
         return false;
+    }
 
-    if (!getStatus(reply[cmd].toMap()["Estado"].toMap()))
+    if (!getStatus(reply[cmd].toMap()["Estado"].toMap())) {
+        emit fiscalStatus(FiscalPrinter::Error);
         return false;
-
+    }
 
     qDebug() << "OK";
     return true;
@@ -412,7 +419,7 @@ void DriverFiscalHasar2G::closeFiscalReceipt(const char intype, const char f_typ
             doc["ftype"] = 3;
             break;
         default:
-            doc["ftype"] = 2;
+            doc["ftype"] = 0;
             break;
     }
 
