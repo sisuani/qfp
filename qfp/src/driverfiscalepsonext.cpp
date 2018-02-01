@@ -1005,7 +1005,7 @@ void DriverFiscalEpsonExt::setHeaderTrailer(const QString &header, const QString
 {
 }
 
-void DriverFiscalEpsonExt::setEmbarkNumber(const int doc_num, const QString &description)
+void DriverFiscalEpsonExt::setEmbarkNumber(const int doc_num, const QString &description, const char type)
 {
     m_refer = description;
     if (m_tax_type == 'I')

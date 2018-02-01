@@ -90,30 +90,36 @@ public:
                         break;
                     case 'A': // FC A
                         fp->setHeaderTrailer("", "test prueba si");
-                        fp->setEmbarkNumber(1, "001-00001-00000001");
+                        fp->setEmbarkNumber(1, "0007-00001234");
                         fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                         fp->openFiscalReceipt('A');
-                        fp->printLineItem("Producto de prueba", 1, 100, "21.00", 'M');
+                        fp->printLineItem("Producto 1", 1, 1, "21.00", 'M');
+                        fp->printLineItem("Producto 2", 1, 1, "21.00", 'M');
+                        fp->printLineItem("Producto 3", 1, 1, "10.50", 'M');
+                        fp->printLineItem("Producto 4", 1, 1, "10.50", 'M');
                         //fp->printLineItem("Producto de prueba", 1, 50, "10.50", 'M');
-                        fp->generalDiscount("Descuento", 12, 21.0, 'm');
+                        fp->generalDiscount("Descuento", 2, 21.0, 'm');
                         //fp->generalDiscount("Descuento", 8, 10.5, 'm');
                         //fp->perceptions("2.5", 0.025);
-                        //fp->totalTender("Contado", 1, 'T');
+                        fp->totalTender("Contado", 2, 'T');
                         fp->closeFiscalReceipt('T', 'A', 7);
                         fp->setHeaderTrailer("", "");
                         break;
                     case 'B': // FC B
                         fp->setCustomerData("Nombre Sr Fac B", "20285142084", 'C', "C", "Juan B. Justo 1234");
                         fp->openFiscalReceipt('B');
-                        fp->printLineItem("Producto de prueba", 1.00, 10.00, "10.50", 'M');
+                        fp->printLineItem("Producto de prueba", 1.00, 10.00, "21.00", 'M');
                         //fp->generalDiscount("Descuento", 0.50, 'm');
                         fp->totalTender("Efectivo", 5, 'T');
                         fp->closeFiscalReceipt('T', 'B', 1);
                         break;
                     case 'C': // FC C
                         fp->openFiscalReceipt('B');
-                        fp->printLineItem("Producto de prueba", 1, 1, "10.50", 'M');
-                        //fp->generalDiscount("Descuento", 0.50, 'm');
+                        fp->printLineItem("Producto 1", 1, 1, "21.00", 'M');
+                        fp->printLineItem("Producto 2", 1, 1, "21.00", 'M');
+                        fp->printLineItem("Producto 3", 1, 1, "10.50", 'M');
+                        fp->printLineItem("Producto 4", 1, 1, "10.50", 'M');
+                        fp->generalDiscount("Descuento", 2, 21.0,  'm');
                         ///fp->totalTender("Contado", 1, 'T');
                         fp->closeFiscalReceipt('T', 'B', 1);
                         break;

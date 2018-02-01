@@ -90,7 +90,7 @@ public:
     virtual void closeNonFiscalReceipt();
     virtual void openDrawer();
     virtual void setHeaderTrailer(const QString &header, const QString &trailer);
-    virtual void setEmbarkNumber(const int doc_num, const QString &description);
+    virtual void setEmbarkNumber(const int doc_num, const QString &description, const char type);
     virtual void openDNFH(const char type, const char fix_value, const QString &doc_num);
     virtual void printEmbarkItem(const QString &description, const qreal quantity);
     virtual void closeDNFH(const int id, const char f_type, const int copies);

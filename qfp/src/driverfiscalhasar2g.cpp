@@ -238,9 +238,9 @@ void DriverFiscalHasar2G::setCustomerData(const QString &name, const QString &cu
             customer["ResponsabilidadIVA"] = "ResponsableInscripto";
             break;
         case 'M':
-            customer["ResponsabilidadIVA"] = "Monotributista";
+            customer["ResponsabilidadIVA"] = "Monotributo";
             break;
-        case 'N':
+        case 'A':
             customer["ResponsabilidadIVA"] = "NoResponsable";
             break;
         default:
@@ -394,7 +394,8 @@ void DriverFiscalHasar2G::generalDiscount(const QString &description, const qrea
     discount["Descripcion"] = description;
     discount["Monto"] = QString::number(amount, 'f', 2);
     discount["ModoBaseTotal"] = "ModoPrecioTotal";
-    d["ImprimirDescuentoItem"] = discount;
+    discount["Operacion"] = type == 'M' ? "AjustePos" : "AjusteNeg";
+    d["ImprimirAjuste"] = discount;
 
     queue.append(d);
     start();
@@ -515,15 +516,42 @@ void DriverFiscalHasar2G::setHeaderTrailer(const QString &header, const QString 
 
 }
 
-void DriverFiscalHasar2G::setEmbarkNumber(const int doc_num, const QString &description)
+void DriverFiscalHasar2G::setEmbarkNumber(const int doc_num, const QString &description, const char type)
 {
-    Q_UNUSED(description);
-
     QVariantMap d;
     QVariantMap doc;
 
     doc["NumeroLinea"] = "1";
-    doc["NumeroComprobante"] = QString::number(doc_num).rightJustified('0', 8);
+
+    switch (type) {
+        case 'B':
+            doc["CodigoComprobante"] = "TiqueFacturaB";
+            break;
+        case 'A':
+            doc["CodigoComprobante"] = "TiqueFacturaA";
+            break;
+        case 'M':
+            doc["CodigoComprobante"] = "TiqueNotaCreditoA";
+            break;
+        case 'T':
+            doc["CodigoComprobante"] = "Tique";
+            break;
+        case 'R':
+            doc["CodigoComprobante"] = "TiqueNotaCreditoA";
+            break;
+        case 'S':
+            doc["CodigoComprobante"] = "TiqueNotaCreditoB";
+            break;
+        case 'r':
+            doc["CodigoComprobante"] = "RemitoR";
+            break;
+        default:
+            doc["CodigoComprobante"] = "Generico";
+            break;
+    }
+
+    doc["NumeroPos"] = description.left(4);
+    doc["NumeroComprobante"] = description.right(8);
     d["CargarDocumentoAsociado"] = doc;
 
     queue.append(d);
@@ -570,6 +598,27 @@ void DriverFiscalHasar2G::setDateTime(const QDateTime &dateTime)
 // --------------------------------- //
 void DriverFiscalHasar2G::reprintDocument(const QString &doc_type, const int doc_number)
 {
+    QVariantMap d;
+    QVariantMap doc;
+
+    if (doc_type.compare("081") == 0)
+        doc["CodigoComprobante"] = "TiqueFacturaA";
+    else if (doc_type.compare("082") == 0)
+        doc["CodigoComprobante"] = "TiqueFacturaB";
+    else if (doc_type.compare("112") == 0)
+        doc["CodigoComprobante"] = "TiqueNotaCreditoA";
+    else if (doc_type.compare("113") == 0)
+        doc["CodigoComprobante"] = "TiqueNotaCreditoB";
+    else if (doc_type.compare("110") == 0)
+        doc["CodigoComprobante"] = "TiqueNotaCreditoB";
+    else
+        doc["CodigoComprobante"] = "Tique";
+
+    doc["NumeroComprobante"] = QString::number(doc_number);
+    d["CopiarComprobante"] = doc;
+
+    queue.append(d);
+    start();
 }
 
 void DriverFiscalHasar2G::reprintContinue()

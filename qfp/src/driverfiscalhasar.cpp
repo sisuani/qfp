@@ -717,7 +717,7 @@ void DriverFiscalHasar::setHeaderTrailer(const QString &header, const QString &t
     start();
 }
 
-void DriverFiscalHasar::setEmbarkNumber(const int doc_num, const QString &description)
+void DriverFiscalHasar::setEmbarkNumber(const int doc_num, const QString &description, const char type)
 {
     PackageHasar *p = new PackageHasar;
     p->setCmd(CMD_EMBARKNUMBER);

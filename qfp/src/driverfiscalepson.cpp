@@ -688,7 +688,7 @@ void DriverFiscalEpson::setHeaderTrailer(const QString &header, const QString &t
 {
 }
 
-void DriverFiscalEpson::setEmbarkNumber(const int doc_num, const QString &description)
+void DriverFiscalEpson::setEmbarkNumber(const int doc_num, const QString &description, const char type)
 {
     m_refer = description;
 }

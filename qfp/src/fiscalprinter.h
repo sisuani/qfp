@@ -102,7 +102,7 @@ public:
     void closeNonFiscalReceipt();
     void openDrawer();
     void setHeaderTrailer(const QString &header, const QString &trailer);
-    void setEmbarkNumber(const int doc_num, const QString &description);
+    void setEmbarkNumber(const int doc_num, const QString &description, const char type = ' ');
     void openDNFH(const char type, const char fix_value, const QString  &doc_num);
     void printEmbarkItem(const QString &description, const qreal quantity);
     void closeDNFH(const int id, const char f_type, const int copies);

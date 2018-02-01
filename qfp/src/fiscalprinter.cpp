@@ -224,9 +224,9 @@ void FiscalPrinter::setHeaderTrailer(const QString &header, const QString &trail
     m_driverFiscal->setHeaderTrailer(header, trailer);
 }
 
-void FiscalPrinter::setEmbarkNumber(const int doc_num, const QString &description)
+void FiscalPrinter::setEmbarkNumber(const int doc_num, const QString &description, const char type)
 {
-    m_driverFiscal->setEmbarkNumber(doc_num, description);
+    m_driverFiscal->setEmbarkNumber(doc_num, description, type);
 }
 
 void FiscalPrinter::openDNFH(const char type, const char fix_value, const QString &doc_num)
