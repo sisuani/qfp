@@ -150,15 +150,17 @@ public:
                         fp->reprintFinalize();
                         break;
                     case 'i':
-                        fp->getTransactionalMemoryInfo();
-                        pause();
-                        pause();
-                        fp->downloadReportByNumber("CTD", 1, 10);
-                        pause();
-                        fp->downloadContinue();
-                        fp->downloadContinue();
-                        pause();
+                        //fp->getTransactionalMemoryInfo();
+                        //pause();
+                        //pause();
+                        fp->downloadReportByDate("0", QDate(2018, 2, 1), QDate(2018, 2, 2));
+                        //fp->downloadReportByNumber("CTD", 1, 10);
+                        //pause();
+                        //fp->downloadContinue();
+                        //fp->downloadContinue();
+                        //pause();
                         fp->downloadFinalize();
+                        break;
                     case 'w':
                         fp->openDrawer();
                         break;

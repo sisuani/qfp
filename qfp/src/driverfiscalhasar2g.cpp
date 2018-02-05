@@ -683,16 +683,34 @@ void DriverFiscalHasar2G::getTransactionalMemoryInfo()
 {
 }
 
-void DriverFiscalHasar2G::downloadReportByDate(const QString &type, const QDate &form, const QDate &to)
+void DriverFiscalHasar2G::downloadReportByDate(const QString &type, const QDate &from, const QDate &to)
 {
+
+    QVariantMap d;
+    QVariantMap report;
+
+    report["FechaInicial"] = from.toString("yyMMdd");
+    report["FechaFinal"] = to.toString("yyMMdd");
+    report["TipoReporte"] = "ReporteAFIPCompleto";
+    d["ObtenerPrimerBloqueReporteElectronico"] = report;
+
+    queue.append(d);
+    start();
 }
 
 void DriverFiscalHasar2G::downloadReportByNumber(const QString &type, const int from, const int to)
 {
+
 }
 
 void DriverFiscalHasar2G::downloadContinue()
 {
+    QVariantMap d;
+
+    d["ObtenerSiguienteBloqueReporteElectronico"] = "";
+
+    queue.append(d);
+    start();
 }
 
 void DriverFiscalHasar2G::downloadFinalize()
