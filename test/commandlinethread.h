@@ -150,16 +150,12 @@ public:
                         fp->reprintFinalize();
                         break;
                     case 'i':
-                        //fp->getTransactionalMemoryInfo();
+                        fp->getTransactionalMemoryInfo();
                         //pause();
                         //pause();
-                        fp->downloadReportByDate("0", QDate(2018, 2, 1), QDate(2018, 2, 2));
-                        //fp->downloadReportByNumber("CTD", 1, 10);
-                        //pause();
-                        //fp->downloadContinue();
-                        //fp->downloadContinue();
-                        //pause();
-                        fp->downloadFinalize();
+                        //fp->downloadReportByDate("0", QDate(2018, 2, 1), QDate(2018, 2, 2));
+                        fp->downloadReportByNumber("CTD", 1, 10);
+                        fp->downloadContinue();
                         break;
                     case 'w':
                         fp->openDrawer();
@@ -191,6 +187,13 @@ private slots:
     void fiscalData(int cmd, QVariant data) {
         qDebug() << "CMD: " << cmd;
         qDebug() << "DATA: " << data;
+        if (data.toString().isEmpty())
+            return;
+
+        if (data.toString().contains("-----END CMS-----") != 0)
+            fp->downloadContinue();
+        else
+            fp->downloadFinalize();
     }
 
 private:
