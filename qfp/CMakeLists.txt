@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 2.6.0)
 
-if (${QtV} STREQUAL "4")
-    find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
-    include(${QT_USE_FILE})
-else()
+if ("$ENV{QT_SELECT}" STREQUAL "qt5")
+    FIND_PACKAGE(Qt5Core QUIET)
+endif()
+
+IF (Qt5Core_FOUND)
     find_package(Qt5Core REQUIRED)
     find_package(Qt5Network REQUIRED)
+else()
+    find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
+    include(${QT_USE_FILE})
 endif()
 
 set(qfp_SRCS

@@ -31,22 +31,31 @@ SET(FRAMEWORK_INSTALL_DIR "${CMAKE_INSTALL_PREFIX}/Library/Frameworks"
 # (This will have no effect with CMake < 2.8)
 SET(QT_USE_IMPORTED_TARGETS TRUE)
 
-if (${QtV} STREQUAL "4")
+if ("$ENV{QT_SELECT}" STREQUAL "qt5")
+    FIND_PACKAGE(Qt5Core QUIET)
+endif()
+
+IF (Qt5Core_FOUND)
+#  MESSAGE ("Qt5 found")
+#
+  INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS})
+  ADD_DEFINITIONS(${Qt5Core_DEFINITIONS})
+  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
+#
+#  # Tell CMake to run moc when necessary:
+  set(CMAKE_AUTOMOC ON)
+#  # As moc files are generated in the binary dir, tell CMake
+#  # to always look for includes there:
+  set(CMAKE_INCLUDE_CURRENT_DIR ON)
+ELSE()
+#  MESSAGE ("Qt5 not found, searching for Qt4")
+  # Find Qt4
   FIND_PACKAGE( Qt4 REQUIRED )
 
   # Include the cmake file needed to use qt4
   INCLUDE( ${QT_USE_FILE} )
-else()
-  INCLUDE_DIRECTORIES(${Qt5Core_INCLUDE_DIRS})
-  ADD_DEFINITIONS(${Qt5Core_DEFINITIONS})
-  SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${Qt5Core_EXECUTABLE_COMPILE_FLAGS}")
 
-  # Tell CMake to run moc when necessary:
-  set(CMAKE_AUTOMOC ON)
-  # As moc files are generated in the binary dir, tell CMake
-  # to always look for includes there:
-  set(CMAKE_INCLUDE_CURRENT_DIR ON)
-endif()
+ENDIF()
 
 IF (NOT WIN32)
   SET( QT_DONT_USE_QTGUI TRUE )

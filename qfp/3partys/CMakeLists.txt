@@ -1,11 +1,15 @@
 cmake_minimum_required(VERSION 2.6.0)
 
-if (${QtV} STREQUAL "4")
-    find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
-    include(${QT_USE_FILE})
-else()
+if ("$ENV{QT_SELECT}" STREQUAL "qt5")
+    FIND_PACKAGE(Qt5Core QUIET)
+endif()
+
+IF (Qt5Core_FOUND)
     find_package(Qt5Core REQUIRED)
     find_package(Qt5Network REQUIRED)
+else()
+    find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
+    include(${QT_USE_FILE})
 endif()
 
 
@@ -38,7 +42,7 @@ include_directories(logger)
 add_library(3partys STATIC ${3partys_SRCS})
 set_target_properties(3partys PROPERTIES AUTOMOC true)
 
-if (${QtV} STREQUAL "5")
+IF (Qt5Core_FOUND)
     TARGET_LINK_LIBRARIES(3partys Qt5::Core)
     TARGET_LINK_LIBRARIES(3partys Qt5::Network)
 endif()
