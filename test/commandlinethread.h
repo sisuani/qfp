@@ -190,7 +190,7 @@ private slots:
         if (data.toString().isEmpty())
             return;
 
-        if (data.toString().contains("-----END CMS-----") != 0)
+        if (!data.toString().contains("-----END CMS-----"))
             fp->downloadContinue();
         else
             fp->downloadFinalize();

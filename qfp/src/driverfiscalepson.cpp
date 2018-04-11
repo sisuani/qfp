@@ -105,7 +105,7 @@ void DriverFiscalEpson::run()
 
         } else {
             log << QString("FISCAL ERROR?");
-            //queue.clear();
+            queue.clear();
         }
     }
 }
