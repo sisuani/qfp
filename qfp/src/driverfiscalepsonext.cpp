@@ -1296,8 +1296,10 @@ void DriverFiscalEpsonExt::downloadReportByDate(const QString &type, const QDate
         d.append(QByteArray::fromHex("0"));
     else if (type == "A")
         d.append(0x04);
-    else
+    else {
+        d.append(0x1b);
         d.append(0x02);
+    }
     d.append(PackageFiscal::FS);
     d.append(from.toString("ddMMyy"));
     d.append(PackageFiscal::FS);
@@ -1323,8 +1325,11 @@ void DriverFiscalEpsonExt::downloadReportByNumber(const QString &type, const int
         d.append(QByteArray::fromHex("0"));
     else if (type == "A")
         d.append(0x04);
-    else
+    else {
+        d.append(0x1b);
         d.append(0x02);
+    }
+
     d.append(PackageFiscal::FS);
     d.append(QString::number(from));
     d.append(PackageFiscal::FS);
