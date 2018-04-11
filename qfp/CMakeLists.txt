@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.6.0)
-find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
-include(${QT_USE_FILE})
+
+if (${QtV} STREQUAL "4")
+    find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
+    include(${QT_USE_FILE})
+else()
+    find_package(Qt5Core REQUIRED)
+    find_package(Qt5Network REQUIRED)
+endif()
 
 set(qfp_SRCS
     src/serialport.cpp

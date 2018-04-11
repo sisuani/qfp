@@ -1,6 +1,12 @@
 cmake_minimum_required(VERSION 2.6.0)
-find_package(Qt4 COMPONENTS QtCore REQUIRED)
-include(${QT_USE_FILE})
+
+if (${QtV} STREQUAL "4")
+    find_package(Qt4 COMPONENTS QtCore QtNetwork REQUIRED)
+    include(${QT_USE_FILE})
+else()
+    find_package(Qt5Core REQUIRED)
+    find_package(Qt5Network REQUIRED)
+endif()
 
 
 set(3partys_SRCS
@@ -32,9 +38,15 @@ include_directories(logger)
 add_library(3partys STATIC ${3partys_SRCS})
 set_target_properties(3partys PROPERTIES AUTOMOC true)
 
+if (${QtV} STREQUAL "5")
+    TARGET_LINK_LIBRARIES(3partys Qt5::Core)
+    TARGET_LINK_LIBRARIES(3partys Qt5::Network)
+endif()
+
 if(WIN32)
     target_link_libraries(3partys ${QT_LIBRARIES})
     target_link_libraries(3partys setupapi)
     target_link_libraries(3partys advapi32)
     target_link_libraries(3partys user32)
 endif(WIN32)
+
