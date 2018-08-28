@@ -34,20 +34,21 @@
 
 #include "driverfiscalhasar2g.h"
 #include "packagefiscal.h"
+#include "networkport.h"
 
 #include <QDateTime>
 #include <QEventLoop>
 
 #define CLOSEDOCCMD "CerrarDocumento"
 
-DriverFiscalHasar2G::DriverFiscalHasar2G(QObject *parent, NetworkPort *m_networkPort, int m_TIME_WAIT)
-    : QThread(parent), DriverFiscal(parent, m_networkPort, m_TIME_WAIT)
+DriverFiscalHasar2G::DriverFiscalHasar2G(QObject *parent, Connector *m_connector, int m_TIME_WAIT)
+    : QThread(parent), DriverFiscal(parent, m_connector, m_TIME_WAIT)
 {
     m_error = false;
     cancel_count = 0;
     m_continue = true;
     connect(this, SIGNAL(sendData(const QVariantMap &)),
-            m_networkPort, SLOT(post(const QVariantMap &)));
+            m_connector, SLOT(post(const QVariantMap &)));
 }
 
 void DriverFiscalHasar2G::setModel(const FiscalPrinter::Model model)
@@ -65,16 +66,16 @@ void DriverFiscalHasar2G::run()
 
 
         QEventLoop loop;
-        connect(m_networkPort, SIGNAL(finished()), &loop, SLOT(quit()));
+        connect(m_connector, SIGNAL(finished()), &loop, SLOT(quit()));
         loop.exec();
 
-        if (m_networkPort->lastError() != NetworkPort::NP_NO_ERROR) {
+        if (m_connector->lastError() != NetworkPort::NP_NO_ERROR) {
             emit fiscalStatus(FiscalPrinter::Error);
-            qDebug() << "Error: " << m_networkPort->lastError();
+            qDebug() << "Error: " << m_connector->lastError();
             continue;
         }
 
-        const QVariantMap reply = m_networkPort->lastReply();
+        const QVariantMap reply = m_connector->lastReply();
 
         if (!verifyPackage(pkg, reply)) {
             queue.clear();

@@ -46,7 +46,7 @@ class DriverFiscalHasar : public QThread, virtual public DriverFiscal
     Q_OBJECT
 
 public:
-    explicit DriverFiscalHasar(QObject *parent = 0, SerialPort *m_serialPort = 0, int m_TIME_WAIT = 300);
+    explicit DriverFiscalHasar(QObject *parent = 0, Connector *m_connector = 0, int m_TIME_WAIT = 300);
 
     enum {
         CMD_OPENFISCALRECEIPT       = 0x40,

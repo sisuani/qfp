@@ -40,8 +40,8 @@
 
 int PackageHasar::m_secuence = 0x20;
 
-DriverFiscalHasar::DriverFiscalHasar(QObject *parent, SerialPort *m_serialPort, int m_TIME_WAIT)
-    : QThread(parent), DriverFiscal(parent, m_serialPort, m_TIME_WAIT)
+DriverFiscalHasar::DriverFiscalHasar(QObject *parent, Connector *m_connector, int m_TIME_WAIT)
+    : QThread(parent), DriverFiscal(parent, m_connector, m_TIME_WAIT)
 {
 #if LOGGER
     //Logger::instance()->init(QCoreApplication::applicationDirPath() + "/fiscal.txt");
@@ -74,12 +74,12 @@ void DriverFiscalHasar::run()
 {
     while(!queue.empty() && m_continue) {
         PackageHasar *pkg = queue.first();
-        m_serialPort->write(pkg->fiscalPackage());
+        m_connector->write(pkg->fiscalPackage());
 
         QByteArray ret = readData(pkg->cmd(), 0);
         if(ret == "-1") {
             queue.clear();
-            m_serialPort->readAll();
+            m_connector->readAll();
 
             if(errorHandler_count > 4)
                 return;
@@ -144,7 +144,7 @@ void DriverFiscalHasar::errorHandler()
         d.append("0");
     }
     p->setData(d);
-    m_serialPort->write(p->fiscalPackage());
+    m_connector->write(p->fiscalPackage());
 
 
     delete p;
@@ -154,7 +154,7 @@ void DriverFiscalHasar::errorHandler()
     p->setCmd(CMD_CLOSEFISCALRECEIPT);
     p->setFtype(0);
     p->setId(-1);
-    m_serialPort->write(p->fiscalPackage());
+    m_connector->write(p->fiscalPackage());
 
     delete p;
     sendAck();
@@ -164,7 +164,7 @@ void DriverFiscalHasar::errorHandler()
 
     QByteArray z;
     p->setData(z);
-    m_serialPort->write(p->fiscalPackage());
+    m_connector->write(p->fiscalPackage());
 
     delete p;
     sendAck();
@@ -179,7 +179,7 @@ void DriverFiscalHasar::sendAck()
 {
     QByteArray ack;
     ack.append(PackageFiscal::ACK);
-    m_serialPort->write(ack);
+    m_connector->write(ack);
 #if LOGGER
     qDebug() << QString("SEND ACK");
 #endif
@@ -225,7 +225,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
     QByteArray bytes;
 
     do {
-        if(m_serialPort->bytesAvailable() <= 0 && m_continue) {
+        if(m_connector->bytesAvailable() <= 0 && m_continue) {
             qDebug() << "NB tw";
             SleeperThread::msleep(100);
         }
@@ -233,7 +233,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
         if(!m_continue)
             return "";
 
-        QByteArray bufferBytes = m_serialPort->read(1);
+        QByteArray bufferBytes = m_connector->read(1);
         if(bufferBytes.at(0) == PackageFiscal::ACK) {
             //qDebug() << QString("ACK PRINTER: %1 ").arg(bufferBytes.toHex());
             SleeperThread::msleep(100);
@@ -250,7 +250,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
         } else if(bufferBytes.at(0) == PackageFiscal::STX) {
             bytes += PackageFiscal::STX;
 
-            bufferBytes = m_serialPort->read(1);
+            bufferBytes = m_connector->read(1);
             while(bufferBytes.at(0) != PackageFiscal::ETX) {
                 count_tw++;
                 if(bufferBytes.isEmpty()) {
@@ -258,7 +258,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
                 }
 
                 bytes += bufferBytes;
-                bufferBytes = m_serialPort->read(1);
+                bufferBytes = m_connector->read(1);
 
                 if(count_tw >= MAX_TW)
                     break;
@@ -269,7 +269,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
             QByteArray checkSumArray;
             int checksumCount = 0;
             while(checksumCount != 4) {
-                checkSumArray = m_serialPort->read(1);
+                checkSumArray = m_connector->read(1);
                 count_tw++;
                 if(checkSumArray.isEmpty()) {
                     SleeperThread::msleep(100);
@@ -299,7 +299,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
         qDebug() << QString("ERRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOORRRRRRRRRRRR READ: %1").arg(bytes.toHex().data());
         if(pkg_cmd == 42) {
             qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            m_serialPort->readAll();
+            m_connector->readAll();
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return "-1";
@@ -459,9 +459,9 @@ void DriverFiscalHasar::setCustomerData(const QString &name, const QString &cuit
         d.append(PackageFiscal::FS);
         d.append(doc_type);
         d.append(PackageFiscal::FS);
-        d.append(address.left(50));
+        d.append(address.left(40));
     } else {
-        d.append(name.left(50));
+        d.append(name.left(49));
         d.append(PackageFiscal::FS);
         d.append(cuit);
         d.append(PackageFiscal::FS);

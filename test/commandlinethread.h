@@ -17,7 +17,6 @@ public:
     CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="", const QString &shost= "", const QString &sport="") : QThread(parent) {
         FiscalPrinter::Brand brand;
         FiscalPrinter::Model model;
-        unsigned int port = sport.toInt();
         QNetworkAccessManager *networkManager;
         if(sbrand.compare("epson") == 0) {
             brand = FiscalPrinter::Epson;
@@ -46,7 +45,7 @@ public:
                 model = FiscalPrinter::Hasar715F; // Error model
         }
 
-        fp = new FiscalPrinter(0, brand, model, shost, port, 400);
+        fp = new FiscalPrinter(0, brand, model, shost, sport, 400);
         ep = new ErrorParser(0, fp);
         connect(fp, SIGNAL(fiscalStatus(int)), ep, SLOT(fiscalStatus(int)));
         connect(fp, SIGNAL(fiscalData(int, QVariant)), this, SLOT(fiscalData(int, QVariant)));

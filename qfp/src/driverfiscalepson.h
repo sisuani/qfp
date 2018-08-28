@@ -44,7 +44,7 @@ class DriverFiscalEpson : public QThread, virtual public DriverFiscal
     Q_OBJECT
 
 public:
-    explicit DriverFiscalEpson(QObject *parent = 0, SerialPort *m_serialPort = 0);
+    explicit DriverFiscalEpson(QObject *parent = 0, Connector *m_connector = 0);
 
     enum {
         CMD_OPENTICKET              = 0x40,

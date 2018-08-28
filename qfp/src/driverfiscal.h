@@ -40,9 +40,8 @@
 #include <QDate>
 #include <QDebug>
 
-#include "networkport.h"
-#include "serialport.h"
 #include "packagefiscal.h"
+#include "connector.h"
 
 #define LOGGER 1
 
@@ -53,8 +52,7 @@ class DriverFiscal
 {
 
 public:
-    DriverFiscal(QObject *parent = 0, SerialPort *m_serialPort = 0, int m_TIME_WAIT = 300) : m_serialPort(m_serialPort) {};
-    DriverFiscal(QObject *parent = 0, NetworkPort *m_networkPort= 0, int m_TIME_WAIT = 300) : m_networkPort(m_networkPort) {};
+    DriverFiscal(QObject *parent = 0, Connector *m_connector = 0, int m_TIME_WAIT = 300) : m_connector(m_connector) {};
     virtual ~DriverFiscal() {};
 
     enum {
@@ -117,8 +115,7 @@ public:
 
 protected:
     virtual void fiscalReceiptNumber(int id, int number, int type) = 0; // type == 0 Factura, == 1 NC
-    SerialPort *m_serialPort;
-    NetworkPort *m_networkPort;
+    Connector *m_connector;
     int m_TIME_WAIT;
     bool m_continue;
 };

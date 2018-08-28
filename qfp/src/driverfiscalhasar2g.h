@@ -46,7 +46,7 @@ class DriverFiscalHasar2G : public QThread, virtual public DriverFiscal
     Q_OBJECT
 
 public:
-    explicit DriverFiscalHasar2G(QObject *parent = 0, NetworkPort *m_networkPort= 0, int m_TIME_WAIT = 300);
+    explicit DriverFiscalHasar2G(QObject *parent = 0, Connector *m_connector= 0, int m_TIME_WAIT = 300);
 
     void setModel(const FiscalPrinter::Model model);
 

@@ -47,8 +47,8 @@
 
 int PackageEpsonExt::m_secuence = 0x81;
 
-DriverFiscalEpsonExt::DriverFiscalEpsonExt(QObject *parent, SerialPort *m_serialPort)
-    : QThread(parent), DriverFiscal(parent, m_serialPort)
+DriverFiscalEpsonExt::DriverFiscalEpsonExt(QObject *parent, Connector *m_connector)
+    : QThread(parent), DriverFiscal(parent, m_connector)
 {
     QString path = QDir::homePath() + QDir::separator() + ".config" + QDir::separator() + "Subway" + QDir::separator();
 #if LOGGER
@@ -84,7 +84,7 @@ void DriverFiscalEpsonExt::run()
 
     while(!queue.empty() && m_continue) {
         PackageEpsonExt *pkg = queue.first();
-        m_serialPort->write(pkg->fiscalPackage());
+        m_connector->write(pkg->fiscalPackage());
 
         QByteArray ret = readData(pkg->cmd(), 0);
         if(!ret.isEmpty()) {
@@ -165,8 +165,8 @@ void DriverFiscalEpsonExt::sendAck()
 {
     QByteArray ack;
     ack.append(PackageFiscal::ACK);
-    m_serialPort->write(ack);
-    QByteArray bufferBytes = m_serialPort->read(1);
+    m_connector->write(ack);
+    QByteArray bufferBytes = m_connector->read(1);
 #if LOGGER
     qDebug() << QString("SEND ACK") << bufferBytes;
 #endif
@@ -203,7 +203,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
     QByteArray bytes;
 
     do {
-        if(m_serialPort->bytesAvailable() <= 0 && m_continue) {
+        if(m_connector->type().compare("COM") == 0  && (m_connector->bytesAvailable() <= 0 && m_continue)) {
             log << QString("NB tw");
             count_tw++;
             SleeperThread::msleep(100);
@@ -212,7 +212,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
         if(!m_continue)
             return "";
 
-        QByteArray bufferBytes = m_serialPort->read(1);
+        QByteArray bufferBytes = m_connector->read(1);
         if(bufferBytes.at(0) == PackageFiscal::DC1 || bufferBytes.at(0) == PackageFiscal::DC2
                 || bufferBytes.at(0) == PackageFiscal::DC3 || bufferBytes.at(0) == PackageFiscal::DC4
                 || bufferBytes.at(0) == PackageFiscal::FNU || bufferBytes.at(0) == PackageFiscal::ACK) {
@@ -222,7 +222,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
         } else if(bufferBytes.at(0) == PackageFiscal::NAK) {
             return bufferBytes;
         } else if(bufferBytes.at(0) == PackageFiscal::STX) {
-            bufferBytes = m_serialPort->read(1);
+            bufferBytes = m_connector->read(1);
             verifyIntermediatePackage(bufferBytes);
 
 
@@ -242,11 +242,11 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
                 }
 
                 if(bufferBytes.at(0) == PackageFiscal::STX) {
-                    bufferBytes = m_serialPort->read(1);
+                    bufferBytes = m_connector->read(1);
                     verifyIntermediatePackage(bufferBytes);
                 }
                 bytes += bufferBytes;
-                bufferBytes = m_serialPort->read(1);
+                bufferBytes = m_connector->read(1);
 
             }
 
@@ -255,7 +255,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
             QByteArray checkSumArray;
             int checksumCount = 0;
             while(checksumCount != 4 && m_continue) {
-                checkSumArray = m_serialPort->read(1);
+                checkSumArray = m_connector->read(1);
                 if(checkSumArray.isEmpty()) {
                     SleeperThread::msleep(100);
                     count_tw++;
@@ -291,7 +291,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
         log << QString("ERROR READ: %1").arg(bytes.toHex().data());
         if(pkg_cmd == 42) {
             log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            m_serialPort->readAll();
+            m_connector->readAll();
             emit fiscalStatus(FiscalPrinter::Error);
         }
     } else {
@@ -311,9 +311,9 @@ void DriverFiscalEpsonExt::verifyIntermediatePackage(QByteArray &bufferBytes)
     while (QString(bufferBytes.toHex()) == "80") {
         count_tw++;
 
-        bufferBytes = m_serialPort->read(1);
+        bufferBytes = m_connector->read(1);
         while(bufferBytes.at(0) != PackageFiscal::ETX) {
-            bufferBytes = m_serialPort->read(1);
+            bufferBytes = m_connector->read(1);
             count_tw++;
             if(count_tw >= MAX_TW)
                 break;
@@ -324,7 +324,7 @@ void DriverFiscalEpsonExt::verifyIntermediatePackage(QByteArray &bufferBytes)
         QByteArray checkSumArray;
         int checksumCount = 0;
         while(checksumCount != 4 && m_continue) {
-            checkSumArray = m_serialPort->read(1);
+            checkSumArray = m_connector->read(1);
             count_tw++;
             if(checkSumArray.isEmpty()) {
                 SleeperThread::msleep(100);

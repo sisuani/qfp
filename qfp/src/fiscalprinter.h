@@ -1,6 +1,6 @@
 /*
 *
-* Copyright (C)2013, Samuel Isuani <sisuani@gmail.com>
+* Copyright (C)2018, Samuel Isuani <sisuani@gmail.com>
 * All rights reserved.
 *
 * Redistribution and use in source and binary forms, with or without
@@ -35,8 +35,7 @@
 #ifndef FISCALPRINTER_H
 #define FISCALPRINTER_H
 
-#include "serialport.h"
-#include "networkport.h"
+#include "connector.h"
 #include "driverfiscal.h"
 
 class FiscalPrinter : public QObject
@@ -74,7 +73,7 @@ public:
 
     FiscalPrinter(QObject *parent = 0, FiscalPrinter::Brand brand = Epson,
             FiscalPrinter::Model model = EpsonTMU220, const QString &port_type = "COM",
-            unsigned int port = 1, int m_TIME_WAIT = 300);
+            const QString &port = "1", int m_TIME_WAIT = 300);
 
     ~FiscalPrinter();
     int model();
@@ -128,10 +127,8 @@ signals:
     void fiscalData(int, QVariant);
 
 private:
-    SerialPort *m_serialPort;
-    NetworkPort *m_networkPort;
+    Connector *m_connector;
     DriverFiscal *m_driverFiscal;
-    bool m_supportTicket;
     int m_model;
 };
 
