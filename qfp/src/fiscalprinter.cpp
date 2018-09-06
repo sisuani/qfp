@@ -300,3 +300,20 @@ void FiscalPrinter::downloadFinalize()
 void FiscalPrinter::downloadDelete(const int to)
 {
 }
+
+const QStringList FiscalPrinter::getAvailableUsbFiscals()
+{
+    QStringList ret;
+    QtUsb::FilterList mSystemList = QUsbDevice::getAvailableDevices();
+    for (int i = 0; i < mSystemList.length(); i++) {
+        QtUsb::DeviceFilter df = mSystemList.at(i);
+        if (df.vid == 0x04b8) {
+            if (df.pid == 0x0201)
+                ret << "TM-900FA";
+            else if (df.pid == 0x0202)
+                ret << "TM-220";
+        }
+
+    }
+    return ret;
+}

@@ -120,6 +120,7 @@ public:
     void downloadContinue();
     void downloadFinalize();
     void downloadDelete(const int to);
+    const QStringList getAvailableUsbFiscals();
 
 signals:
     void fiscalReceiptNumber(int, int, int);

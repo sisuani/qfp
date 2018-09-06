@@ -42,13 +42,6 @@ UsbPort::UsbPort(const quint16 vid, const quint16 pid)
     m_usbPort = new QUsbDevice();
     m_usbPort->setDebug(true);
 
-    QtUsb::FilterList mSystemList = QUsbDevice::getAvailableDevices();
-    for (int i = 0; i < mSystemList.length(); i++) {
-        QtUsb::DeviceFilter df = mSystemList.at(i);
-
-        qDebug() << df.vid << df.pid;
-    }
-
     m_filter.pid = pid;
     m_filter.vid = vid;
 
