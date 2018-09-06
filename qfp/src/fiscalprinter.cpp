@@ -51,6 +51,7 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
     Logger::instance()->init(QCoreApplication::applicationDirPath() + "/fiscal_test.txt");
     log << "START";
 
+
     m_connector = new Connector(this, model, port_type, port);
 
     if (brand == FiscalPrinter::Epson) {
@@ -299,21 +300,4 @@ void FiscalPrinter::downloadFinalize()
 
 void FiscalPrinter::downloadDelete(const int to)
 {
-}
-
-const QStringList FiscalPrinter::getAvailableUsbFiscals()
-{
-    QStringList ret;
-    QtUsb::FilterList mSystemList = QUsbDevice::getAvailableDevices();
-    for (int i = 0; i < mSystemList.length(); i++) {
-        QtUsb::DeviceFilter df = mSystemList.at(i);
-        if (df.vid == 0x04b8) {
-            if (df.pid == 0x0201)
-                ret << "TM-900FA";
-            else if (df.pid == 0x0202)
-                ret << "TM-220";
-        }
-
-    }
-    return ret;
 }

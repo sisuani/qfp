@@ -54,10 +54,14 @@ Connector::Connector(QObject *parent, int model, const QString &port_type, const
         } else { // USB
 
             bool ok;
-            const quint16 vid = port.left(port.indexOf(":")).toInt(&ok, 16);
-            const quint16 pid = port.right(port.indexOf(":")).toInt(&ok, 16);
+            const quint16 vid = 0x04b8;
+            quint16 pid = 0x0;
+            if (model == FiscalPrinter::EpsonTM900)
+                pid = 0x0201;
+            else if (model == FiscalPrinter::EpsonTMU220)
+                pid = 0x0202;
 
-            m_usbPort = new UsbPort(pid, vid);
+            m_usbPort = new UsbPort(vid, pid);
             qDebug() << "usbport - " << port_type << port << m_usbPort->isOpen();
         }
     }

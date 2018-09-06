@@ -40,7 +40,7 @@
 UsbPort::UsbPort(const quint16 vid, const quint16 pid)
 {
     m_usbPort = new QUsbDevice();
-    m_usbPort->setDebug(true);
+    //m_usbPort->setDebug(true);
 
     m_filter.pid = pid;
     m_filter.vid = vid;
