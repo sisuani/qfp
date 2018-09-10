@@ -54,7 +54,7 @@ UsbPort::UsbPort(const quint16 vid, const quint16 pid)
 
     QtUsb::DeviceStatus ds;
     ds = m_usbManager.openDevice(m_usbPort, m_filter, m_config);
-    m_open = ds == QtUsb::deviceOK;
+    m_open = (ds == QtUsb::deviceOK) ? true : false;
 }
 
 bool UsbPort::isOpen()
@@ -81,9 +81,17 @@ QByteArray UsbPort::read(const qreal size)
 {
     if (!m_open) return tread;
 
-    if (tread.isEmpty())
-        m_usbPort->read(&tread, 128);
+    m_usbPort->read(&tread ,size);
+    return tread;
+    /*
 
+    if (tread.isEmpty()) {
+        tread.reserve(16);
+        qDebug() << "RESERVE - RESIZE - SZ READ: " << rs;
+        tread.resize(rs);
+    }
+
+    qDebug() << "TREAD SIZE: " << tread.size() << size;
     if (tread.size() >= size) {
         QByteArray ret = tread.left(size);
         tread.remove(0, size);
@@ -91,11 +99,12 @@ QByteArray UsbPort::read(const qreal size)
     }
 
     return tread;
+    */
 }
 
 QByteArray UsbPort::readAll()
 {
-    return read(512);
+    return read(128);
 }
 
 const qreal UsbPort::bytesAvailable()
