@@ -91,12 +91,12 @@ const QString &Connector::type()
 
 QVariantMap Connector::lastReply() const
 {
-    m_networkPort->lastReply();
+    return m_networkPort->lastReply();
 }
 
 const int Connector::lastError() const
 {
-    m_networkPort->lastError();
+    return m_networkPort->lastError();
 }
 
 void Connector::con_finished()

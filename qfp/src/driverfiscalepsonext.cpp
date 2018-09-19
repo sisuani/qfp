@@ -609,7 +609,7 @@ void DriverFiscalEpsonExt::openFiscalReceipt(const char type)
         d.append(PackageFiscal::FS);
         d.append(m_tax_type);
         d.append(PackageFiscal::FS);
-        d.append(m_refer.isEmpty() ? "901-99999-99999999" : m_refer);
+        d.append(m_refer.isEmpty() ? "901-99998-99999998" : m_refer);
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
         d.append(PackageFiscal::FS);
@@ -1061,7 +1061,7 @@ void DriverFiscalEpsonExt::openDNFH(const char type, const char fix_value, const
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
     d.append(PackageFiscal::FS);
-    d.append(dn.isEmpty() ? "902-99999-99999999" : dn);
+    d.append(dn.isEmpty() ? "902-99998-99999998" : dn);
 
     p->setData(d);
 
