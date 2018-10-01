@@ -136,6 +136,7 @@ public:
                         fp->closeFiscalReceipt('0', '0', 1);
                         break;
                     case 'D': // Nota Credito
+                        fp->setEmbarkNumber(1, "0007-00001234", 'A');
                         fp->setCustomerData("Nombre Sr Fac A", "20285142084", 'I', "C", "Juan B. Justo 1234");
                         fp->openDNFH('R', 'T', "123-45678-99999990");
                         fp->printLineItem("Producto de prueba", 1, 10, "21.00", 'M');

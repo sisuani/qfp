@@ -32,6 +32,8 @@
 *
 */
 
+#include <QtGlobal>
+
 #include "usbport.h"
 
 #include <QDebug>
@@ -39,6 +41,7 @@
 
 UsbPort::UsbPort(const quint16 vid, const quint16 pid)
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     m_usbPort = new QUsbDevice();
     //m_usbPort->setDebug(true);
 
@@ -55,6 +58,7 @@ UsbPort::UsbPort(const quint16 vid, const quint16 pid)
     QtUsb::DeviceStatus ds;
     ds = m_usbManager.openDevice(m_usbPort, m_filter, m_config);
     m_open = (ds == QtUsb::deviceOK) ? true : false;
+#endif
 }
 
 bool UsbPort::isOpen()
@@ -64,7 +68,9 @@ bool UsbPort::isOpen()
 
 void UsbPort::close()
 {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     m_usbManager.closeDevice(m_usbPort);
+#endif
 }
 
 const qreal UsbPort::write(const QByteArray &data)
@@ -72,34 +78,21 @@ const qreal UsbPort::write(const QByteArray &data)
     if (!m_open) return 0;
 
     qDebug() << "writing " << data.toHex();
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     const qreal size = m_usbPort->write(&data, data.size());
     m_usbPort->flush();
     return size;
+#endif
 }
 
 QByteArray UsbPort::read(const qreal size)
 {
     if (!m_open) return tread;
 
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     m_usbPort->read(&tread ,size);
     return tread;
-    /*
-
-    if (tread.isEmpty()) {
-        tread.reserve(16);
-        qDebug() << "RESERVE - RESIZE - SZ READ: " << rs;
-        tread.resize(rs);
-    }
-
-    qDebug() << "TREAD SIZE: " << tread.size() << size;
-    if (tread.size() >= size) {
-        QByteArray ret = tread.left(size);
-        tread.remove(0, size);
-        return ret;
-    }
-
-    return tread;
-    */
+#endif
 }
 
 QByteArray UsbPort::readAll()

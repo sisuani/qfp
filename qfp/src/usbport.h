@@ -35,7 +35,10 @@
 #ifndef USBPORT_H
 #define USBPORT_H
 
+#include <QByteArray>
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
 #include <QtUsb/QUsb>
+#endif
 
 class UsbPort
 {
@@ -54,11 +57,15 @@ public:
 private:
     bool m_open;
     QByteArray tread;
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     QUsbManager m_usbManager;
     QUsbDevice* m_usbPort;
 
     QtUsb::DeviceFilter m_filter;
     QtUsb::DeviceConfig m_config;
+#endif
 };
 
+
 #endif // USBPORT_H
+
