@@ -54,7 +54,6 @@ DriverFiscalHasar::DriverFiscalHasar(QObject *parent, Connector *m_connector, in
 
 void DriverFiscalHasar::setModel(const FiscalPrinter::Model model)
 {
-    qDebug() << "MODEL: " << model << "ORIG: " << FiscalPrinter::Hasar615F;
     m_model = model;
 }
 
@@ -129,7 +128,10 @@ void DriverFiscalHasar::run()
 
 void DriverFiscalHasar::errorHandler()
 {
-    qDebug() << "RECUPERANDO";
+#ifdef DEBUG
+    log() << "DriverFiscalHasar::errorHandler() -> fixing";
+#endif
+
     PackageHasar *p = new PackageHasar;
     p->setCmd(CMD_TOTALTENDER);
 
@@ -177,12 +179,13 @@ void DriverFiscalHasar::errorHandler()
 
 void DriverFiscalHasar::sendAck()
 {
+#ifdef DEBUG
+    log() << QString("Sending ACK");
+#endif
+
     QByteArray ack;
     ack.append(PackageFiscal::ACK);
     m_connector->write(ack);
-#if LOGGER
-    qDebug() << QString("SEND ACK");
-#endif
 }
 
 int DriverFiscalHasar::getReceiptNumber(const QByteArray &data)
@@ -203,8 +206,8 @@ int DriverFiscalHasar::getReceiptNumber(const QByteArray &data)
         }
     }
 
-#if LOGGER
-    qDebug() << QString("F. Num: %1").arg(tmp.trimmed().toInt());
+#ifdef DEBUG
+    log() << QString("F. Num: %1").arg(tmp.trimmed().toInt());
 #endif
     return tmp.trimmed().toInt();
 }
@@ -226,7 +229,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
 
     do {
         if(m_connector->bytesAvailable() <= 0 && m_continue) {
-            qDebug() << "NB tw";
+//            qDebug() << "NB tw";
             SleeperThread::msleep(100);
         }
 
@@ -235,17 +238,17 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
 
         QByteArray bufferBytes = m_connector->read(1);
         if(bufferBytes.at(0) == PackageFiscal::ACK) {
-            //qDebug() << QString("ACK PRINTER: %1 ").arg(bufferBytes.toHex());
             SleeperThread::msleep(100);
         } else if(bufferBytes.at(0) == PackageFiscal::DC1 || bufferBytes.at(0) == PackageFiscal::DC2
                 || bufferBytes.at(0) == PackageFiscal::DC3 || bufferBytes.at(0) == PackageFiscal::DC4
                 || bufferBytes.at(0) == PackageFiscal::ACK) {
-            qDebug() << "DC tw: " << bufferBytes.toHex();
             SleeperThread::msleep(100);
             count_tw -= 30;
             continue;
         } else if(bufferBytes.at(0) == PackageFiscal::NAK) {
-            qDebug() << QString("NAK");
+#ifdef DEBUG
+            log() << QString("NAK");
+#endif
             return bufferBytes;
         } else if(bufferBytes.at(0) == PackageFiscal::STX) {
             bytes += PackageFiscal::STX;
@@ -291,20 +294,28 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
 
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
-    qDebug() << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
+#ifdef DEBUG
+    log() << QString("DriverFiscalHasar::readData() -> counter:  %1 %2").arg(count_tw).arg(MAX_TW);
+#endif
 
     ok = verifyResponse(bytes, pkg_cmd);
 
     if(!ok) {
-        qDebug() << QString("ERRRRRRRRRRRRRRRRRRRRRRROOOOOOOOOOOOOOOOOORRRRRRRRRRRR READ: %1").arg(bytes.toHex().data());
+#ifdef DEBUG
+        log() << QString("DriverFiscalHasar::readData() -> error : %1").arg(bytes.toHex().data());
+#endif
         if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
+#ifdef DEBUG
+            log() << QString("DriverFiscalHasar::readData() -> sending FiscalPrinter::Error");
+#endif
             m_connector->readAll();
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return "-1";
     } else {
-        qDebug() << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
+#ifdef DEBUG
+        log() << QString("DriverFiscalHasar::readData() -> OK PGV3: %1").arg(bytes.toHex().data());
+#endif
         emit fiscalStatus(FiscalPrinter::Ok);
     }
 
@@ -314,18 +325,18 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
 bool DriverFiscalHasar::verifyResponse(const QByteArray &bytes, const int pkg_cmd)
 {
     if(bytes.at(0) != PackageFiscal::STX) {
-        qDebug() << QString("NO STX %1").arg(bytes.toHex().data());
+//        qDebug() << QString("NO STX %1").arg(bytes.toHex().data());
         if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
 
     if(QChar(bytes.at(2)).unicode() != pkg_cmd) {
-        qDebug() << QString("ERR - diff cmds: %1 %2").arg(QChar(bytes.at(2)).unicode()).arg(pkg_cmd);
+        //qDebug() << QString("ERR - diff cmds: %1 %2").arg(QChar(bytes.at(2)).unicode()).arg(pkg_cmd);
         if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
+          //  qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
 
@@ -335,20 +346,20 @@ bool DriverFiscalHasar::verifyResponse(const QByteArray &bytes, const int pkg_cm
     m_error = false;
 
     if(bytes.at(3) != PackageFiscal::FS) {
-        qDebug() << QString("Error: diff FS");
+        //qDebug() << QString("Error: diff FS");
 
         if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
 
     if(bytes.at(bytes.size() - 5) != PackageFiscal::ETX) {
-        qDebug() << QString("Error: ETX");
+        //qDebug() << QString("Error: ETX");
 
         if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
@@ -357,10 +368,10 @@ bool DriverFiscalHasar::verifyResponse(const QByteArray &bytes, const int pkg_cm
     return true;
 
     if(!checkSum(bytes)) {
-        qDebug() << QString("Error: checksum");
+        //qDebug() << QString("Error: checksum");
 
         if(pkg_cmd == 42) {
-            qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //qDebug() << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;

@@ -89,7 +89,9 @@ void NetworkPort::post(const QVariantMap &body)
         QJson::Parser parser;
         bool parseOk = true;
         m_lastReply = parser.parse(json, &parseOk).toMap();
-        qDebug() << json;
+#ifdef DEBUG
+        log() << QString("NetworkPort::post() -> reply : %1").arg(json);
+#endif
         if (!parseOk)
             m_lastError = NP_ERROR_PARSE;
     } else {

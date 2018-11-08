@@ -53,7 +53,6 @@ DriverFiscalHasar2G::DriverFiscalHasar2G(QObject *parent, Connector *m_connector
 
 void DriverFiscalHasar2G::setModel(const FiscalPrinter::Model model)
 {
-    qDebug() << "MODEL: " << model << "ORIG: " << FiscalPrinter::Hasar1000F;
     m_model = model;
 }
 
@@ -71,7 +70,9 @@ void DriverFiscalHasar2G::run()
 
         if (m_connector->lastError() != NetworkPort::NP_NO_ERROR) {
             emit fiscalStatus(FiscalPrinter::Error);
-            qDebug() << "Error: " << m_connector->lastError();
+#ifdef DEBUG
+            log() << QString("DriverFiscalHasar2G::run() -> Error: %1").arg(m_connector->lastError());
+#endif
             continue;
         }
 
@@ -119,8 +120,8 @@ void DriverFiscalHasar2G::errorHandler()
 
 int DriverFiscalHasar2G::getReceiptNumber(const QByteArray &data)
 {
-#if LOGGER
-    qDebug() << QString("F. Num: %1").arg(data.trimmed().toInt());
+#ifdef DEBUG
+    log() << QString("F. Num: %1").arg(data.trimmed().toInt());
 #endif
     return data.trimmed().toInt();
 }
@@ -163,7 +164,6 @@ bool DriverFiscalHasar2G::verifyPackage(const QVariantMap &pkg, const QVariantMa
         return false;
     }
 
-    qDebug() << "OK";
     return true;
 }
 

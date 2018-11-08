@@ -35,12 +35,6 @@
 #include "driverfiscalepsonext.h"
 #include "packagefiscal.h"
 
-#if LOGGER
-#include "logger.h"
-#else
-#define log qDebug()
-#endif
-
 #include <QCoreApplication>
 #include <QDateTime>
 #include <QDir>
@@ -50,10 +44,6 @@ int PackageEpsonExt::m_secuence = 0x81;
 DriverFiscalEpsonExt::DriverFiscalEpsonExt(QObject *parent, Connector *m_connector)
     : QThread(parent), DriverFiscal(parent, m_connector)
 {
-    QString path = QDir::homePath() + QDir::separator() + ".config" + QDir::separator() + "Subway" + QDir::separator();
-#if LOGGER
-    Logger::instance()->init(path + "fiscal.txt");
-#endif
     m_nak_count = 0;
     m_error = false;
     m_isinvoice = false;
@@ -90,7 +80,9 @@ void DriverFiscalEpsonExt::run()
         if(!ret.isEmpty()) {
             if(ret.at(0) == PackageFiscal::NAK && m_nak_count <= 3) { // ! NAK
                 m_nak_count++;
-                qDebug() << "NAK";
+#ifdef DEBUG
+                log() << "DriverFiscalEpsonExt::run() -> NAK";
+#endif
                 SleeperThread::msleep(100);
                 continue;
             }
@@ -137,7 +129,9 @@ void DriverFiscalEpsonExt::run()
             delete pkg;
 
         } else {
-            log << QString("FISCAL ERROR?");
+#ifdef DEBUG
+            log() << QString("DriverFiscalEpsonExt::run() -> fiscal error?");
+#endif
             sendAck();
             queue.clear();
         }
@@ -167,8 +161,8 @@ void DriverFiscalEpsonExt::sendAck()
     ack.append(PackageFiscal::ACK);
     m_connector->write(ack);
     QByteArray bufferBytes = m_connector->read(1);
-#if LOGGER
-    qDebug() << QString("SEND ACK") << bufferBytes;
+#ifdef DEBUG
+    log() << QString("DriverFiscalEpsonExt::sendAck() %1").arg(bufferBytes);
 #endif
 }
 
@@ -183,7 +177,9 @@ int DriverFiscalEpsonExt::getReceiptNumber(const QByteArray &data)
         }
     }
 
-    log << QString("F. Num: %1").arg(tmp.trimmed().toInt());
+#ifdef DEBUG
+    log() << QString("DriverFiscalEpsonExt::getReceiptNumber() -> F. Num: %1").arg(tmp.trimmed().toInt());
+#endif
     return tmp.trimmed().toInt();
 }
 
@@ -204,7 +200,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
 
     do {
         if(m_connector->type().compare("COM") == 0  && (m_connector->bytesAvailable() <= 0 && m_continue)) {
-            log << QString("NB tw");
+            //log << QString("NB tw");
             count_tw++;
             SleeperThread::msleep(100);
         }
@@ -283,19 +279,25 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
 
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
-    qDebug() << QString("COUNTER: %1 %2").arg(count_tw).arg(MAX_TW);
+#ifdef DEBUG
+    log() << QString("DriverFiscalEpsonExt::readData() -> counter: %1 %2").arg(count_tw).arg(MAX_TW);
+#endif
 
     ok = verifyResponse(bytes, pkg_cmd);
 
     if(!ok) {
-        log << QString("ERROR READ: %1").arg(bytes.toHex().data());
+#ifdef DEBUG
+        log() << QString("DriverFiscalEpsonExt::readData() -> error read: %1").arg(bytes.toHex().data());
+#endif
         if(pkg_cmd == 42) {
-            log << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             m_connector->readAll();
             emit fiscalStatus(FiscalPrinter::Error);
         }
     } else {
-        log << QString("--> OK PKGV3: %1").arg(bytes.toHex().data());
+#ifdef DEBUG
+        log() << QString("DriverFiscalEpsonExt::readData() -> OK PKGV3: %1").arg(bytes.toHex().data());
+#endif
         emit fiscalStatus(FiscalPrinter::Ok);
     }
 
@@ -342,9 +344,9 @@ void DriverFiscalEpsonExt::verifyIntermediatePackage(QByteArray &bufferBytes)
 bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg_cmd)
 {
     if(bytes.at(0) != PackageFiscal::STX) {
-        log << QString("NO STX %1").arg(bytes.toHex().data());
+        //log << QString("NO STX %1").arg(bytes.toHex().data());
         if(pkg_cmd == 42) {
-            log << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
@@ -363,10 +365,10 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
     */
 
     if(bytes.at(4) != PackageFiscal::FS) {
-        log << QString("Error: diff FS");
+        //log << QString("Error: diff FS");
 
         if(pkg_cmd == 42) {
-            log << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
@@ -374,20 +376,20 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
 
 
     if(bytes.at(bytes.size() - 5) != PackageFiscal::ETX) {
-        log << QString("Error: ETX");
+        //log << QString("Error: ETX");
 
         if(pkg_cmd == 42) {
-            log << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
     }
 
     if(!checkSum(bytes)) {
-        log << QString("Error: checksum");
+        //log << QString("Error: checksum");
 
         if(pkg_cmd == 42) {
-            log << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
         }
         return false;
@@ -1295,11 +1297,9 @@ void DriverFiscalEpsonExt::downloadReportByDate(const QString &type, const QDate
     if (type == "CTD")
         d.append(QByteArray::fromHex("0"));
     else if (type == "A")
-        d.append(0x04);
-    else {
-        d.append(0x1b);
         d.append(0x02);
-    }
+    else
+        d.append(0x04);
     d.append(PackageFiscal::FS);
     d.append(from.toString("ddMMyy"));
     d.append(PackageFiscal::FS);
@@ -1324,12 +1324,9 @@ void DriverFiscalEpsonExt::downloadReportByNumber(const QString &type, const int
     if (type == "CTD")
         d.append(QByteArray::fromHex("0"));
     else if (type == "A")
-        d.append(0x04);
-    else {
-        d.append(0x1b);
         d.append(0x02);
-    }
-
+    else
+        d.append(0x04);
     d.append(PackageFiscal::FS);
     d.append(QString::number(from));
     d.append(PackageFiscal::FS);

@@ -77,7 +77,9 @@ void SerialPort::close()
 
 const qreal SerialPort::write(const QByteArray &data)
 {
-    qDebug() << "writing " << data.toHex();
+#ifdef DEBUG
+    log() << QString("SerialPort::write() %1").arg(data.toHex());
+#endif
     const qreal size = m_serialPort->write(data.data(), data.size());
     m_serialPort->flush();
     return size;

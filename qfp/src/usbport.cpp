@@ -77,7 +77,10 @@ const qreal UsbPort::write(const QByteArray &data)
 {
     if (!m_open) return 0;
 
-    qDebug() << "writing " << data.toHex();
+#ifdef DEBUG
+    log() << QString("UsbPort::write() %1").arg(data.toHex());
+#endif
+
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
     const qreal size = m_usbPort->write(&data, data.size());
     m_usbPort->flush();
