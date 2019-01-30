@@ -44,7 +44,7 @@ Connector::Connector(QObject *parent, int model, const QString &port_type, const
     , m_serialPort(0)
     , m_usbPort(0)
 {
-    if (model == FiscalPrinter::Hasar1000F && port_type.compare("COM") != 0 && port_type.compare("USB") != 0) {
+    if (model == FiscalPrinter::Hasar1000F) {
         m_networkPort = new NetworkPort(this, port_type, port.toInt());
         connect(m_networkPort, SIGNAL(finished()), this, SLOT(con_finished()));
 #ifdef DEBUG
