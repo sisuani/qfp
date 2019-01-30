@@ -34,6 +34,7 @@
 
 #include "driverfiscalepson.h"
 #include "packagefiscal.h"
+#include "logger.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -99,7 +100,7 @@ void DriverFiscalEpson::run()
 
         } else {
 #ifdef DEBUG
-            log() << QString("DriverFiscalEpson::run() -> fiscal error?");
+            log << QString("DriverFiscalEpson::run() -> fiscal error?");
 #endif
             queue.clear();
         }
@@ -118,7 +119,7 @@ int DriverFiscalEpson::getReceiptNumber(const QByteArray &data)
     }
 
 #ifdef DEBUG
-    log() << QString("DriverFiscalEpson::getReceiptNumber() -> F. Num: %1").arg(tmp.trimmed().toInt());
+    log << QString("DriverFiscalEpson::getReceiptNumber() -> F. Num: %1").arg(tmp.trimmed().toInt());
 #endif
     return tmp.trimmed().toInt();
 }
@@ -163,7 +164,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd, const QByteArray &secu
 
             bufferBytes = m_connector->read(1);
 #ifdef DEBUG
-            log() << QString("DriverFiscalEpson::readData() -> read : %1").arg(secuence);
+            log << QString("DriverFiscalEpson::readData() -> read : %1").arg(secuence.toHex().constData());
 #endif
             bool has_cmd = false;
             while(bufferBytes.at(0) != PackageFiscal::ETX) {
@@ -217,7 +218,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd, const QByteArray &secu
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
 #ifdef DEBUG
-    log() << QString("DriverFiscalEpson::readData() -> counter: %1 %2").arg(count_tw).arg(MAX_TW);
+    log << QString("DriverFiscalEpson::readData() -> counter: %1 %2").arg(count_tw).arg(MAX_TW);
 #endif
 
     bytes = bytes.remove(0, bytes.lastIndexOf(PackageFiscal::STX));
@@ -225,7 +226,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd, const QByteArray &secu
 
     if(!ok) {
 #ifdef DEBUG
-        log() << QString("DriverFiscalEpson::readData() -> error read: %1").arg(bytes.toHex().data());
+        log << QString("DriverFiscalEpson::readData() -> error read: %1").arg(bytes.toHex().data());
 #endif
         if(pkg_cmd == 42) {
             //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
@@ -234,7 +235,7 @@ QByteArray DriverFiscalEpson::readData(const int pkg_cmd, const QByteArray &secu
         }
     } else {
 #ifdef DEBUG
-        log() << QString("DriverFiscalEpson::readData() -> OK PKGV3: %1").arg(bytes.toHex().data());
+        log << QString("DriverFiscalEpson::readData() -> OK PKGV3: %1").arg(bytes.toHex().data());
 #endif
         emit fiscalStatus(FiscalPrinter::Ok);
     }

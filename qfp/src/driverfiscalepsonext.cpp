@@ -34,6 +34,7 @@
 
 #include "driverfiscalepsonext.h"
 #include "packagefiscal.h"
+#include "logger.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -81,7 +82,7 @@ void DriverFiscalEpsonExt::run()
             if(ret.at(0) == PackageFiscal::NAK && m_nak_count <= 3) { // ! NAK
                 m_nak_count++;
 #ifdef DEBUG
-                log() << "DriverFiscalEpsonExt::run() -> NAK";
+                log << "DriverFiscalEpsonExt::run() -> NAK";
 #endif
                 SleeperThread::msleep(100);
                 continue;
@@ -130,7 +131,7 @@ void DriverFiscalEpsonExt::run()
 
         } else {
 #ifdef DEBUG
-            log() << QString("DriverFiscalEpsonExt::run() -> fiscal error?");
+            log << QString("DriverFiscalEpsonExt::run() -> fiscal error?");
 #endif
             sendAck();
             queue.clear();
@@ -162,7 +163,7 @@ void DriverFiscalEpsonExt::sendAck()
     m_connector->write(ack);
     QByteArray bufferBytes = m_connector->read(1);
 #ifdef DEBUG
-    log() << QString("DriverFiscalEpsonExt::sendAck() %1").arg(bufferBytes);
+    log << QString("DriverFiscalEpsonExt::sendAck() %1").arg(bufferBytes.toHex().constData());
 #endif
 }
 
@@ -178,7 +179,7 @@ int DriverFiscalEpsonExt::getReceiptNumber(const QByteArray &data)
     }
 
 #ifdef DEBUG
-    log() << QString("DriverFiscalEpsonExt::getReceiptNumber() -> F. Num: %1").arg(tmp.trimmed().toInt());
+    log << QString("DriverFiscalEpsonExt::getReceiptNumber() -> F. Num: %1").arg(tmp.trimmed().toInt());
 #endif
     return tmp.trimmed().toInt();
 }
@@ -280,14 +281,14 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
 #ifdef DEBUG
-    log() << QString("DriverFiscalEpsonExt::readData() -> counter: %1 %2").arg(count_tw).arg(MAX_TW);
+    log << QString("DriverFiscalEpsonExt::readData() -> counter: %1 %2").arg(count_tw).arg(MAX_TW);
 #endif
 
     ok = verifyResponse(bytes, pkg_cmd);
 
     if(!ok) {
 #ifdef DEBUG
-        log() << QString("DriverFiscalEpsonExt::readData() -> error read: %1").arg(bytes.toHex().data());
+        log << QString("DriverFiscalEpsonExt::readData() -> error read: %1").arg(bytes.toHex().data());
 #endif
         if(pkg_cmd == 42) {
             //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
@@ -296,7 +297,7 @@ QByteArray DriverFiscalEpsonExt::readData(const int pkg_cmd, const QByteArray &s
         }
     } else {
 #ifdef DEBUG
-        log() << QString("DriverFiscalEpsonExt::readData() -> OK PKGV3: %1").arg(bytes.toHex().data());
+        log << QString("DriverFiscalEpsonExt::readData() -> OK PKGV3: %1").arg(bytes.toHex().data());
 #endif
         emit fiscalStatus(FiscalPrinter::Ok);
     }
@@ -344,7 +345,9 @@ void DriverFiscalEpsonExt::verifyIntermediatePackage(QByteArray &bufferBytes)
 bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg_cmd)
 {
     if(bytes.at(0) != PackageFiscal::STX) {
-        //log << QString("NO STX %1").arg(bytes.toHex().data());
+#ifdef DEBUG
+        log << QString("DriverFiscalEpsonExt::verifyResponse() -> error: Not STX");
+#endif
         if(pkg_cmd == 42) {
             //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
@@ -365,7 +368,9 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
     */
 
     if(bytes.at(4) != PackageFiscal::FS) {
-        //log << QString("Error: diff FS");
+#ifdef DEBUG
+        log << QString("DriverFiscalEpsonExt::verifyResponse() -> error: diff FS");
+#endif
 
         if(pkg_cmd == 42) {
             //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
@@ -376,18 +381,9 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
 
 
     if(bytes.at(bytes.size() - 5) != PackageFiscal::ETX) {
-        //log << QString("Error: ETX");
-
-        if(pkg_cmd == 42) {
-            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
-            emit fiscalStatus(FiscalPrinter::Error);
-        }
-        return false;
-    }
-
-    if(!checkSum(bytes)) {
-        //log << QString("Error: checksum");
-
+#ifdef DEBUG
+        log << QString("DriverFiscalEpsonExt::verifyResponse() -> error: ETX");
+#endif
         if(pkg_cmd == 42) {
             //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
             emit fiscalStatus(FiscalPrinter::Error);
@@ -396,6 +392,21 @@ bool DriverFiscalEpsonExt::verifyResponse(const QByteArray &bytes, const int pkg
     }
 
     return true;
+
+    /*
+    if(!checkSum(bytes)) {
+#ifdef DEBUG
+        log << QString("DriverFiscalEpsonExt::verifyResponse() -> error: checksum");
+#endif
+        if(pkg_cmd == 42) {
+            //log << QString("SIGNAL ->> ENVIO STATUS ERROR");
+            emit fiscalStatus(FiscalPrinter::Error);
+        }
+        return false;
+    }
+
+    return true;
+    */
 }
 
 

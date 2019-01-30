@@ -35,6 +35,7 @@
 #include "driverfiscalhasar2g.h"
 #include "packagefiscal.h"
 #include "networkport.h"
+#include "logger.h"
 
 #include <QDateTime>
 #include <QEventLoop>
@@ -71,7 +72,7 @@ void DriverFiscalHasar2G::run()
         if (m_connector->lastError() != NetworkPort::NP_NO_ERROR) {
             emit fiscalStatus(FiscalPrinter::Error);
 #ifdef DEBUG
-            log() << QString("DriverFiscalHasar2G::run() -> Error: %1").arg(m_connector->lastError());
+            log << QString("DriverFiscalHasar2G::run() -> Error: %1").arg(m_connector->lastError());
 #endif
             continue;
         }
@@ -121,7 +122,7 @@ void DriverFiscalHasar2G::errorHandler()
 int DriverFiscalHasar2G::getReceiptNumber(const QByteArray &data)
 {
 #ifdef DEBUG
-    log() << QString("F. Num: %1").arg(data.trimmed().toInt());
+    log << QString("F. Num: %1").arg(data.trimmed().toInt());
 #endif
     return data.trimmed().toInt();
 }

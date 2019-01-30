@@ -35,6 +35,8 @@
 #ifndef FISCALPRINTER_H
 #define FISCALPRINTER_H
 
+#define DEBUG 1
+
 #include "connector.h"
 #include "driverfiscal.h"
 

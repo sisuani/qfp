@@ -35,6 +35,7 @@
 
 #include "connector.h"
 #include "fiscalprinter.h"
+#include "logger.h"
 
 Connector::Connector(QObject *parent, int model, const QString &port_type, const QString &port)
     : QObject(parent)
@@ -43,33 +44,41 @@ Connector::Connector(QObject *parent, int model, const QString &port_type, const
     , m_serialPort(0)
     , m_usbPort(0)
 {
-    if (model == FiscalPrinter::Hasar1000F) {
+    if (model == FiscalPrinter::Hasar1000F && port_type.compare("COM") != 0 && port_type.compare("USB") != 0) {
         m_networkPort = new NetworkPort(this, port_type, port.toInt());
         connect(m_networkPort, SIGNAL(finished()), this, SLOT(con_finished()));
 #ifdef DEBUG
-        log() << QString("networkport - %1 %2").arg(port_type).arg(port);
+        log << QString("networkport - %1 %2").arg(port_type).arg(port);
 #endif
     } else {
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
         if (port_type.compare("COM") == 0) {
+#endif
             m_serialPort = new SerialPort(port_type, port.toInt());
 #ifdef DEBUG
-            log() << QString("serialport - %1 %2 %3").arg(port_type).arg(port).arg(m_serialPort->isOpen());
+            log << QString("serialport - %1 %2 %3").arg(port_type).arg(port).arg(m_serialPort->isOpen());
 #endif
+
+#if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
         } else { // USB
 
             bool ok;
             const quint16 vid = 0x04b8;
-            quint16 pid = 0x0;
-            if (model == FiscalPrinter::EpsonTM900)
-                pid = 0x0201;
-            else if (model == FiscalPrinter::EpsonTMU220)
-                pid = 0x0202;
-
+            quint16 pid = 0x0201;
             m_usbPort = new UsbPort(vid, pid);
+
+            if (!m_usbPort->isOpen()) {
+                pid = 0x0202;
+                delete m_usbPort;
+                m_usbPort = new UsbPort(vid, pid);
+            }
+
+
 #ifdef DEBUG
-            log() << QString("usbport - %1 %2 %3").arg(port_type).arg(port).arg(m_usbPort->isOpen());
+            log << QString("usbport - %1 %2 %3").arg(port_type).arg(port).arg(m_usbPort->isOpen());
 #endif
         }
+#endif
     }
 }
 
@@ -118,7 +127,7 @@ void Connector::post(const QVariantMap &body)
 const qreal Connector::write(const QByteArray &data)
 {
 #ifdef DEBUG
-    log() << QString("Connector::write() %1").arg(data.toString());
+    log << QString("Connector::write() %1").arg(data.toHex().constData());
 #endif
     if (m_serialPort)
         return m_serialPort->write(data);
@@ -129,9 +138,11 @@ QByteArray Connector::read(const qreal size)
 {
     const QByteArray r = m_serialPort ? m_serialPort->read(size) : m_usbPort->read(size);
 
+/*
 #ifdef DEBUG
-    log() << QString("Connector::read() %1").arg(r.toString());
+    log << QString("Connector::read() %1").arg(r.toHex().constData());
 #endif
+*/
 
     return r;
 

@@ -34,6 +34,7 @@
 
 #include "driverfiscalhasar.h"
 #include "packagefiscal.h"
+#include "logger.h"
 
 #include <QCoreApplication>
 #include <QDateTime>
@@ -129,7 +130,7 @@ void DriverFiscalHasar::run()
 void DriverFiscalHasar::errorHandler()
 {
 #ifdef DEBUG
-    log() << "DriverFiscalHasar::errorHandler() -> fixing";
+    log << "DriverFiscalHasar::errorHandler() -> fixing";
 #endif
 
     PackageHasar *p = new PackageHasar;
@@ -180,7 +181,7 @@ void DriverFiscalHasar::errorHandler()
 void DriverFiscalHasar::sendAck()
 {
 #ifdef DEBUG
-    log() << QString("Sending ACK");
+    log << QString("Sending ACK");
 #endif
 
     QByteArray ack;
@@ -207,7 +208,7 @@ int DriverFiscalHasar::getReceiptNumber(const QByteArray &data)
     }
 
 #ifdef DEBUG
-    log() << QString("F. Num: %1").arg(tmp.trimmed().toInt());
+    log << QString("F. Num: %1").arg(tmp.trimmed().toInt());
 #endif
     return tmp.trimmed().toInt();
 }
@@ -247,7 +248,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
             continue;
         } else if(bufferBytes.at(0) == PackageFiscal::NAK) {
 #ifdef DEBUG
-            log() << QString("NAK");
+            log << QString("NAK");
 #endif
             return bufferBytes;
         } else if(bufferBytes.at(0) == PackageFiscal::STX) {
@@ -295,18 +296,18 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
     } while(ok != true && count_tw <= MAX_TW && m_continue);
 
 #ifdef DEBUG
-    log() << QString("DriverFiscalHasar::readData() -> counter:  %1 %2").arg(count_tw).arg(MAX_TW);
+    log << QString("DriverFiscalHasar::readData() -> counter:  %1 %2").arg(count_tw).arg(MAX_TW);
 #endif
 
     ok = verifyResponse(bytes, pkg_cmd);
 
     if(!ok) {
 #ifdef DEBUG
-        log() << QString("DriverFiscalHasar::readData() -> error : %1").arg(bytes.toHex().data());
+        log << QString("DriverFiscalHasar::readData() -> error : %1").arg(bytes.toHex().data());
 #endif
         if(pkg_cmd == 42) {
 #ifdef DEBUG
-            log() << QString("DriverFiscalHasar::readData() -> sending FiscalPrinter::Error");
+            log << QString("DriverFiscalHasar::readData() -> sending FiscalPrinter::Error");
 #endif
             m_connector->readAll();
             emit fiscalStatus(FiscalPrinter::Error);
@@ -314,7 +315,7 @@ QByteArray DriverFiscalHasar::readData(const int pkg_cmd, const QByteArray &secu
         return "-1";
     } else {
 #ifdef DEBUG
-        log() << QString("DriverFiscalHasar::readData() -> OK PGV3: %1").arg(bytes.toHex().data());
+        log << QString("DriverFiscalHasar::readData() -> OK PGV3: %1").arg(bytes.toHex().data());
 #endif
         emit fiscalStatus(FiscalPrinter::Ok);
     }

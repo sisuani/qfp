@@ -42,8 +42,6 @@
 #include <QCoreApplication>
 #include <QDebug>
 
-#define DEBUG 1
-
 FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
         FiscalPrinter::Model model, const QString &port_type, const QString &port, int m_TIME_WAIT)
     : QObject(parent)
