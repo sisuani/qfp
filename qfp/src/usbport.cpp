@@ -86,6 +86,8 @@ const qreal UsbPort::write(const QByteArray &data)
     m_usbPort->flush();
     return size;
 #endif
+
+    return 0;
 }
 
 QByteArray UsbPort::read(const qreal size)
@@ -96,6 +98,8 @@ QByteArray UsbPort::read(const qreal size)
     m_usbPort->read(&tread ,size);
     return tread;
 #endif
+
+    return 0;
 }
 
 QByteArray UsbPort::readAll()

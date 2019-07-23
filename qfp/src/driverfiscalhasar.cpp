@@ -663,8 +663,8 @@ void DriverFiscalHasar::printNonFiscalText(const QString &text)
     while(!t.isEmpty()) {
         PackageHasar *p = new PackageHasar;
         p->setCmd(CMD_PRINTNONTFISCALTEXT);
-        p->setData(t.left(39));
-        t.remove(0, 39);
+        p->setData(t.left(40));
+        t.remove(0, 40);
         queue.append(p);
     }
 
@@ -864,25 +864,12 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     queue.append(pp);
     d.clear();
 
-    /*
-    PackageHasar *p = new PackageHasar;
-    p->setCmd(0x5d);
-
-
-    d.append("12");
-    d.append(PackageFiscal::FS);
-    d.append("*************************************");
-    p->setData(d);
-    queue.append(p);
-    d.clear();
-    */
-
     PackageHasar *p1 = new PackageHasar;
     p1->setCmd(0x5d);
 
     d.append("12");
     d.append(PackageFiscal::FS);
-    d.append("Entra con este ticket a:");
+    d.append("Ingresa en www.global.subway.com");
     p1->setData(d);
     queue.append(p1);
     d.clear();
@@ -892,7 +879,7 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 
     d.append("13");
     d.append(PackageFiscal::FS);
-    d.append("www.cuentaleasubway.com y llevate una");
+    d.append("Danos tu opinion y guarda el recibo para");
     p2->setData(d);
     queue.append(p2);
     d.clear();
@@ -902,30 +889,27 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 
     d.append("14");
     d.append(PackageFiscal::FS);
-    d.append("COOKIE GRATIS, Rest. ID: " + shop);
+    d.append("obtener una COOKIE GRATIS en tu proxima");
     p3->setData(d);
     queue.append(p3);
     d.clear();
 
-    /*
     PackageHasar *p4 = new PackageHasar;
     p4->setCmd(0x5d);
 
     d.append("15");
     d.append(PackageFiscal::FS);
-    d.append("Restaurante ID: " + shop);
+    d.append("compra. Valido dentro de los 5 dias de");
     p4->setData(d);
     queue.append(p4);
     d.clear();
-    */
 
-    /*
     PackageHasar *p5 = new PackageHasar;
     p5->setCmd(0x5d);
 
-    d.append("18");
+    d.append("16");
     d.append(PackageFiscal::FS);
-    d.append("*************************************");
+    d.append(QString("emision del ticket. Tienda: %1-0").arg(shop));
     p5->setData(d);
     queue.append(p5);
     d.clear();
@@ -933,9 +917,9 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     PackageHasar *p6 = new PackageHasar;
     p6->setCmd(0x5d);
 
-    d.append("19");
+    d.append("17");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p6->setData(d);
     queue.append(p6);
     d.clear();
@@ -943,9 +927,9 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     PackageHasar *p7 = new PackageHasar;
     p7->setCmd(0x5d);
 
-    d.append("20");
+    d.append("18");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p7->setData(d);
     queue.append(p7);
     d.clear();
@@ -953,9 +937,9 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     PackageHasar *p8 = new PackageHasar;
     p8->setCmd(0x5d);
 
-    d.append("21");
+    d.append("19");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p8->setData(d);
     queue.append(p8);
     d.clear();
@@ -963,13 +947,32 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     PackageHasar *p9 = new PackageHasar;
     p9->setCmd(0x5d);
 
-    d.append("22");
+    d.append("20");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p9->setData(d);
     queue.append(p9);
     d.clear();
-    */
+
+    PackageHasar *p10 = new PackageHasar;
+    p10->setCmd(0x5d);
+
+    d.append("21");
+    d.append(PackageFiscal::FS);
+    d.append(0x7f);
+    p10->setData(d);
+    queue.append(p10);
+    d.clear();
+
+    PackageHasar *p11 = new PackageHasar;
+    p11->setCmd(0x5d);
+
+    d.append("22");
+    d.append(PackageFiscal::FS);
+    d.append(0x7f);
+    p11->setData(d);
+    queue.append(p11);
+    d.clear();
 
     start();
 }

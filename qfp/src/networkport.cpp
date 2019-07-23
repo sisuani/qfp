@@ -40,7 +40,8 @@
 #include <QJson/Parser>
 #include <QJson/Serializer>
 #include <QTimer>
-#include <QDebug>
+
+#include "logger.h"
 
 NetworkPort::NetworkPort(QObject *parent, const QString &host, const int port)
     : QThread(0)
@@ -70,7 +71,7 @@ void NetworkPort::post(const QVariantMap &body)
     request.setRawHeader("Content-type", "application/json");
 
     QJson::Serializer serializer;
-    //qDebug() << serializer.serialize(body);
+    log << serializer.serialize(body);
     QNetworkReply *reply = networkManager->post(request, serializer.serialize(body));
     m_lastError = NP_NO_ERROR;
 
@@ -89,9 +90,7 @@ void NetworkPort::post(const QVariantMap &body)
         QJson::Parser parser;
         bool parseOk = true;
         m_lastReply = parser.parse(json, &parseOk).toMap();
-#ifdef DEBUG
-        log() << QString("NetworkPort::post() -> reply : %1").arg(json);
-#endif
+        log << QString("NetworkPort::post() -> reply : %1").arg(json.constData());
         if (!parseOk)
             m_lastError = NP_ERROR_PARSE;
     } else {

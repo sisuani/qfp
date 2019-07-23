@@ -660,8 +660,8 @@ void DriverFiscalEpson::printNonFiscalText(const QString &text)
     while(!t.isEmpty()) {
         PackageEpson *p = new PackageEpson;
         p->setCmd(CMD_PRINTNONTFISCALTEXT);
-        p->setData(t.left(39));
-        t.remove(0, 39);
+        p->setData(t.left(40));
+        t.remove(0, 40);
         queue.append(p);
     }
 
@@ -843,10 +843,9 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
     PackageEpson *p = new PackageEpson;
     p->setCmd(0x5d);
 
-
     d.append("00012");
     d.append(PackageFiscal::FS);
-    d.append("*************************************");
+    d.append("Ingresa en www.global.subway.com");
     p->setData(d);
     queue.append(p);
     d.clear();
@@ -856,7 +855,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00013");
     d.append(PackageFiscal::FS);
-    d.append("Entra con este ticket a:");
+    d.append("Danos tu opinion y guarda el recibo para");
     p1->setData(d);
     queue.append(p1);
     d.clear();
@@ -866,7 +865,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00014");
     d.append(PackageFiscal::FS);
-    d.append("www.cuentaleasubway.com y llevate una");
+    d.append("obtener una COOKIE GRATIS en tu proxima");
     p2->setData(d);
     queue.append(p2);
     d.clear();
@@ -876,7 +875,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00015");
     d.append(PackageFiscal::FS);
-    d.append("COOKIE GRATIS en tu proxima compra.");
+    d.append("compra. Valido dentro de los 5 dias de");
     p3->setData(d);
     queue.append(p3);
     d.clear();
@@ -886,7 +885,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00016");
     d.append(PackageFiscal::FS);
-    d.append("Restaurante ID: " + shop);
+    d.append(QString("emision del ticket. Tienda: %1-0").arg(shop));
     p4->setData(d);
     queue.append(p4);
     d.clear();
@@ -896,7 +895,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00017");
     d.append(PackageFiscal::FS);
-    d.append("*************************************");
+    d.append(0x7f);
     p5->setData(d);
     queue.append(p5);
     d.clear();
@@ -906,7 +905,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00018");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p6->setData(d);
     queue.append(p6);
     d.clear();
@@ -916,7 +915,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00019");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p7->setData(d);
     queue.append(p7);
     d.clear();
@@ -926,7 +925,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00020");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p8->setData(d);
     queue.append(p8);
     d.clear();
@@ -936,7 +935,7 @@ void DriverFiscalEpson::setFixedData(const QString &shop, const QString &phone)
 
     d.append("00021");
     d.append(PackageFiscal::FS);
-    d.append(" ");
+    d.append(0x7f);
     p9->setData(d);
     queue.append(p9);
     d.clear();

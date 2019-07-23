@@ -960,10 +960,10 @@ void DriverFiscalEpsonExt::printNonFiscalText(const QString &text)
         d.append(QByteArray::fromHex("0"));
         d.append(QByteArray::fromHex("0"));
         d.append(PackageFiscal::FS);
-        d.append(t.left(39));
+        d.append(t.left(40));
         p->setData(d);
 
-        t.remove(0, 39);
+        t.remove(0, 40);
 
         queue.append(p);
     }
@@ -1262,12 +1262,12 @@ void DriverFiscalEpsonExt::reprintFinalize()
 void DriverFiscalEpsonExt::setFixedData(const QString &shop, const QString &phone)
 {
     setFooter(1, "DEFENSA CONSUMIDOR " + phone);
-    setFooter(2, "*************************************");
-    setFooter(3, "Entra con este ticket a:");
-    setFooter(4, "www.cuentaleasubway.com y llevate una");
-    setFooter(5, "COOKIE GRATIS en tu proxima compra.");
-    setFooter(6, "Restaurante ID: " + shop);
-    setFooter(7, "*************************************");
+    setFooter(2, "Ingresa en www.global.subway.com");
+    setFooter(3, "Danos tu opinion y guarda el recibo para");
+    setFooter(4, "obtener una COOKIE GRATIS en tu proxima");
+    setFooter(5, "compra. Valido dentro de los 5 dias de");
+    setFooter(6, QString("emision del ticket. Tienda: %1-0").arg(shop));
+    setFooter(7, "");
     setFooter(8, "");
     setFooter(9, "");
     setFooter(10, "");

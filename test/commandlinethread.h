@@ -68,10 +68,10 @@ public:
                         fp->dailyClose('Z');
                         break;
                     case 'd':
-                        fp->dailyCloseByDate(QDate(2018, 1, 1), QDate(2018, 1, 15));
+                        fp->dailyCloseByDate(QDate(2019, 1, 1), QDate(2019, 1, 15));
                         break;
                     case 'n':
-                        fp->dailyCloseByNumber(1, 2);
+                        fp->dailyCloseByNumber(50, 52);
                         break;
                     case 'f':
                         fp->setHeaderTrailer("ECANBEZADO", "PIE");

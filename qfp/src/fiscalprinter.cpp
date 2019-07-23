@@ -40,6 +40,7 @@
 #include "logger.h"
 
 #include <QCoreApplication>
+#include <QRegExp>
 #include <QDebug>
 
 FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
@@ -111,7 +112,8 @@ int FiscalPrinter::model()
 
 bool FiscalPrinter::supportTicket()
 {
-    if(m_model == EpsonTMU220 || m_model == EpsonTM900 || m_model == Hasar615F || m_model == Hasar715F)
+    if(m_model == EpsonTMU220 || m_model == EpsonTM900 || m_model == Hasar615F
+            || m_model == Hasar715F || m_model == Hasar1000F)
         return true;
     return false;
 }
@@ -243,6 +245,7 @@ void FiscalPrinter::printNonFiscalText(const QString &text)
 #ifdef DEBUG
     log << QString("printNonFiscalText() %1").arg(text);
 #endif
+
     m_driverFiscal->printNonFiscalText(text);
 }
 

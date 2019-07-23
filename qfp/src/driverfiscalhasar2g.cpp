@@ -290,6 +290,15 @@ void DriverFiscalHasar2G::openFiscalReceipt(const char type)
         case 'S':
             openReceipt["CodigoComprobante"] = "TiqueNotaCreditoB";
             break;
+        case 'C':
+            openReceipt["CodigoComprobante"] = "TiqueFacturaC";
+            break;
+        case 'N':
+            openReceipt["CodigoComprobante"] = "TiqueNotaCreditoC";
+            break;
+        case 'F':
+            openReceipt["CodigoComprobante"] = "TiqueNotaCredito";
+            break;
         case 'r':
             openReceipt["CodigoComprobante"] = "RemitoR";
             break;
