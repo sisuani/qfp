@@ -37,7 +37,7 @@
 #include "fiscalprinter.h"
 #include "logger.h"
 
-Connector::Connector(QObject *parent, int model, const QString &port_type, const QString &port)
+Connector::Connector(QObject *parent, int model, const QString &port_type, const QString &port, const QString &settings)
     : QObject(parent)
     , m_type(port_type)
     , m_networkPort(0)
@@ -54,7 +54,7 @@ Connector::Connector(QObject *parent, int model, const QString &port_type, const
 #if (QT_VERSION >= QT_VERSION_CHECK(5, 0, 0))
         if (port_type.compare("COM") == 0) {
 #endif
-            m_serialPort = new SerialPort(port_type, port.toInt());
+            m_serialPort = new SerialPort(port_type, port.toInt(), settings);
 #ifdef DEBUG
             log << QString("serialport - %1 %2 %3").arg(port_type).arg(port).arg(m_serialPort->isOpen());
 #endif

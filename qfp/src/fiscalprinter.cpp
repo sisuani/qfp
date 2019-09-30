@@ -44,7 +44,8 @@
 #include <QDebug>
 
 FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
-        FiscalPrinter::Model model, const QString &port_type, const QString &port, int m_TIME_WAIT)
+        FiscalPrinter::Model model, const QString &port_type, const QString &port,
+        const QString &settings, int m_TIME_WAIT)
     : QObject(parent)
     , m_model(model)
 
@@ -56,7 +57,7 @@ FiscalPrinter::FiscalPrinter(QObject *parent, FiscalPrinter::Brand brand,
     log << QString("Start Logging at %1").arg(QDateTime::currentDateTime().toString("dd/MM/yyyy HH:mm:ss"));
 #endif
 
-    m_connector = new Connector(this, model, port_type, port);
+    m_connector = new Connector(this, model, port_type, port, settings);
 
     if (brand == FiscalPrinter::Epson) {
         if (model == EpsonTM900) {

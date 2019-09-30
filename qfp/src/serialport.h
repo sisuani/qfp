@@ -41,7 +41,7 @@ class SerialPort
 {
 
 public:
-    explicit SerialPort(const QString &type = "COM", unsigned int port = 1);
+    explicit SerialPort(const QString &type = "COM", unsigned int port = 1, const QString &settings = "");
 
     bool isOpen();
     void close();

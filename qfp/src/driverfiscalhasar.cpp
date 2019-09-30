@@ -869,7 +869,7 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 
     d.append("12");
     d.append(PackageFiscal::FS);
-    d.append("Ingresa en www.global.subway.com");
+    d.append("Ingresa en www.global.subway.com Danos");
     p1->setData(d);
     queue.append(p1);
     d.clear();
@@ -879,7 +879,7 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 
     d.append("13");
     d.append(PackageFiscal::FS);
-    d.append("Danos tu opinion y guarda el recibo para");
+    d.append("tu opinion y obtene una COOKIE GRATIS");
     p2->setData(d);
     queue.append(p2);
     d.clear();
@@ -889,11 +889,12 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
 
     d.append("14");
     d.append(PackageFiscal::FS);
-    d.append("obtener una COOKIE GRATIS en tu proxima");
+    d.append(QString("en tu proxima compra. Tienda: %1-0").arg(shop));
     p3->setData(d);
     queue.append(p3);
     d.clear();
 
+    /*
     PackageHasar *p4 = new PackageHasar;
     p4->setCmd(0x5d);
 
@@ -973,6 +974,7 @@ void DriverFiscalHasar::setFixedData(const QString &shop, const QString &phone)
     p11->setData(d);
     queue.append(p11);
     d.clear();
+    */
 
     start();
 }

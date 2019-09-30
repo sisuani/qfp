@@ -47,7 +47,7 @@ class Connector : public QObject
 
 public:
     Connector(QObject *parent = 0, int model = 0, const QString &port_type = "COM",
-                const QString &port = "1");
+                const QString &port = "1", const QString &settings = "");
 
 
     bool isOpen();

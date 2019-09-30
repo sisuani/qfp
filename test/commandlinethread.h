@@ -14,7 +14,7 @@ class CommandLineThread : public QThread
     Q_OBJECT
 
 public:
-    CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="", const QString &shost= "", const QString &sport="") : QThread(parent) {
+    CommandLineThread(QObject *parent = 0, const QString &sbrand="", const QString &smodel="", const QString &shost= "", const QString &sport="", const QString &baudios="") : QThread(parent) {
         FiscalPrinter::Brand brand;
         FiscalPrinter::Model model;
         QNetworkAccessManager *networkManager;
@@ -45,7 +45,7 @@ public:
                 model = FiscalPrinter::Hasar715F; // Error model
         }
 
-        fp = new FiscalPrinter(0, brand, model, shost, sport, 400);
+        fp = new FiscalPrinter(0, brand, model, shost, sport, baudios, 400);
         ep = new ErrorParser(0, fp);
         connect(fp, SIGNAL(fiscalStatus(int)), ep, SLOT(fiscalStatus(int)));
         connect(fp, SIGNAL(fiscalData(int, QVariant)), this, SLOT(fiscalData(int, QVariant)));

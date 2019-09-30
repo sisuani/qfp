@@ -75,7 +75,7 @@ public:
 
     FiscalPrinter(QObject *parent = 0, FiscalPrinter::Brand brand = Epson,
             FiscalPrinter::Model model = EpsonTMU220, const QString &port_type = "COM",
-            const QString &port = "1", int m_TIME_WAIT = 300);
+            const QString &port = "1", const QString &settings = "", int m_TIME_WAIT = 300);
 
     ~FiscalPrinter();
     int model();
