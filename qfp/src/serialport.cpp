@@ -56,13 +56,10 @@ SerialPort::SerialPort(const QString &type, unsigned int port, const QString &se
 #endif
 
     m_serialPort = new QextSerialPort(v_port, QextSerialPort::Polling);
-    if (!settings.isEmpty() && settings.compare("b1152000") == 0) {
-        m_serialPort->setBaudRate(BAUD1152000);
-        qDebug() << "baudios 11520000";
-    } else {
+    if (!settings.isEmpty() && settings.compare("b115200") == 0)
+        m_serialPort->setBaudRate(BAUD115200);
+    else
         m_serialPort->setBaudRate(BAUD9600);
-        qDebug() << "baudios 9600";
-    }
     m_serialPort->setFlowControl(FLOW_OFF);
     m_serialPort->setParity(PAR_NONE);
     m_serialPort->setDataBits(DATA_8);
